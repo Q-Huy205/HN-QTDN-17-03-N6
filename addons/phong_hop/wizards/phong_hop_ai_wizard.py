@@ -1,10 +1,25 @@
 # -*- coding: utf-8 -*-
 import re
+import json
+import logging
 from datetime import datetime, timedelta, time as dtime
 from typing import Optional, Tuple, Dict
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
+
+# =========================
+# ✅ Cải tiến (Mức 3): tích hợp LLM thật qua Groq (API tương thích OpenAI)
+# - Đọc API key từ System Parameters: phong_hop.groq_api_key
+# - Model mặc định: phong_hop.groq_model (vd: llama-3.3-70b-versatile)
+# - Nếu không có key hoặc lỗi mạng => tự fallback về parser regex cũ (không vỡ)
+# =========================
+GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_DEFAULT_MODEL = "llama-3.3-70b-versatile"
+# Các mã thiết bị hợp lệ (khớp _DEVICE_KEYWORDS) để LLM trả về đúng chuẩn
+_VALID_DEVICE_CODES = {"may_chieu", "micro", "loa", "dieu_hoa", "may_tinh", "khac"}
 
 
 # =========================
@@ -378,8 +393,121 @@ class PhongHopAIWizard(models.TransientModel):
     # ========
     # INTERNAL
     # ========
+    # ========
+    # ✅ LLM (Groq) — trích xuất yêu cầu từ ngôn ngữ tự nhiên
+    # ========
+    def _groq_config(self):
+        ICP = self.env["ir.config_parameter"].sudo()
+        api_key = (ICP.get_param("phong_hop.groq_api_key") or "").strip()
+        model = (ICP.get_param("phong_hop.groq_model") or GROQ_DEFAULT_MODEL).strip()
+        return api_key, model
+
+    def _llm_extract(self, raw_text):
+        """Gọi Groq để parse yêu cầu -> dict chuẩn, hoặc None nếu không khả dụng."""
+        api_key, model = self._groq_config()
+        if not api_key:
+            return None
+        try:
+            import requests
+        except Exception:
+            _logger.warning("phong_hop AI: thiếu thư viện requests, fallback regex.")
+            return None
+
+        today = fields.Date.today()
+        system_prompt = (
+            "Bạn là trợ lý trích xuất thông tin đặt phòng họp. "
+            "Chỉ trả về JSON thuần (không giải thích) theo schema:\n"
+            '{"ngay":"YYYY-MM-DD","gio_bat_dau":"HH:MM","gio_ket_thuc":"HH:MM",'
+            '"so_nguoi":<int>,"thiet_bi":{"<ma>":<so_luong_int>}}\n'
+            "Mã thiết bị hợp lệ: may_chieu, micro, loa, dieu_hoa, may_tinh, khac.\n"
+            f"Hôm nay là {today.isoformat()} (dùng để quy đổi 'mai', 'thứ 2'... ra ngày tuyệt đối).\n"
+            "Nếu không rõ trường nào thì để null. Giờ theo định dạng 24h."
+        )
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": raw_text or ""},
+            ],
+            "temperature": 0,
+            "response_format": {"type": "json_object"},
+        }
+        try:
+            resp = requests.post(
+                GROQ_ENDPOINT,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                data=json.dumps(payload),
+                timeout=20,
+            )
+            resp.raise_for_status()
+            content = resp.json()["choices"][0]["message"]["content"]
+            return json.loads(content)
+        except Exception as e:
+            _logger.warning("phong_hop AI: gọi Groq lỗi (%s), fallback regex.", e)
+            return None
+
+    def _apply_llm_result(self, data):
+        """Áp dữ liệu LLM trả về vào các field wizard. Trả về req_qty_map hoặc None nếu thiếu."""
+        if not isinstance(data, dict):
+            return None
+        # Ngày
+        ngay = fields.Date.today()
+        if data.get("ngay"):
+            try:
+                ngay = datetime.strptime(data["ngay"], "%Y-%m-%d").date()
+            except Exception:
+                pass
+        # Giờ
+        try:
+            hh1, mm1 = [int(x) for x in str(data["gio_bat_dau"]).split(":")[:2]]
+            hh2, mm2 = [int(x) for x in str(data["gio_ket_thuc"]).split(":")[:2]]
+        except Exception:
+            return None  # thiếu giờ -> để regex xử lý/báo lỗi
+        dt_from = datetime.combine(ngay, dtime(hh1, mm1))
+        dt_to = datetime.combine(ngay, dtime(hh2, mm2))
+        if dt_to <= dt_from:
+            dt_to += timedelta(days=1)
+
+        # Thiết bị: lọc về mã hợp lệ, qty > 0
+        req_qty_map = {}
+        tb = data.get("thiet_bi") or {}
+        if isinstance(tb, dict):
+            for code, qty in tb.items():
+                if code in _VALID_DEVICE_CODES:
+                    try:
+                        q = int(qty)
+                    except Exception:
+                        q = 1
+                    if q > 0:
+                        req_qty_map[code] = q
+
+        so_nguoi = 0
+        try:
+            so_nguoi = int(data.get("so_nguoi") or 0)
+        except Exception:
+            so_nguoi = 0
+
+        self.ngay = ngay
+        self.so_nguoi = max(so_nguoi, 0)
+        self.yeu_cau_loai_thiet_bi = ",".join(req_qty_map.keys()) if req_qty_map else ""
+        self.yeu_cau_so_luong_tb = ", ".join([f"{k}:{v}" for k, v in req_qty_map.items()]) if req_qty_map else ""
+        self.thoi_gian_muon_du_kien = fields.Datetime.to_string(dt_from)
+        self.thoi_gian_tra_du_kien = fields.Datetime.to_string(dt_to)
+        return req_qty_map
+
     def _extract_requirements(self):
         self.ensure_one()
+
+        # ✅ Ưu tiên LLM (Groq); nếu không khả dụng/lỗi -> rơi xuống regex bên dưới
+        llm_data = self._llm_extract(self.request_text)
+        if llm_data is not None:
+            req_map = self._apply_llm_result(llm_data)
+            if req_map is not None:
+                return req_map
+
         text = _normalize_text(self.request_text)
 
         so_nguoi = _parse_attendees(text)
