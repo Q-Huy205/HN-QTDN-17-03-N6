@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <!-- =========================
+         FORM VIEW - dat_phong
+         - Statusbar không clickable (không nhảy trạng thái)
+         - Nút nghiệp vụ chỉ hiện khi record đã lưu (id != False)
+    ========================== -->
+    <record id="view_dat_phong_form" model="ir.ui.view">
+      <field name="name">dat_phong.form</field>
+      <field name="model">dat_phong</field>
+      <field name="arch" type="xml">
+        <form string="Chi tiết Đăng Ký Mượn Phòng">
+
+          <header>
+            <field name="trang_thai"
+                   widget="statusbar"
+                   statusbar_visible="chờ_duyệt,đã_duyệt,đang_sử_dụng,đã_trả,đã_hủy"
+                   options="{'clickable': False}"/>
+
+            <!-- Nút nghiệp vụ: CHỈ hiện khi đã lưu (id != False) -->
+            <button name="xac_nhan_duyet_phong" string="Duyệt" type="object" class="btn-primary"
+                    attrs="{'invisible': ['|', ('id','=',False), ('trang_thai','!=','chờ_duyệt')]}"/>
+
+            <button name="huy_muon_phong" string="Hủy" type="object" class="btn-danger"
+                    attrs="{'invisible': ['|', ('id','=',False), ('trang_thai','!=','chờ_duyệt')]}"/>
+
+            <button name="bat_dau_su_dung" string="Bắt đầu" type="object" class="btn-success"
+                    attrs="{'invisible': ['|', ('id','=',False), ('trang_thai','!=','đã_duyệt')]}"/>
+
+            <button name="huy_da_duyet" string="Hủy duyệt" type="object" class="btn-warning"
+                    attrs="{'invisible': ['|', ('id','=',False), ('trang_thai','!=','đã_duyệt')]}"/>
+
+            <button name="tra_phong" string="Trả phòng" type="object" class="btn-info"
+                    attrs="{'invisible': ['|', ('id','=',False), ('trang_thai','!=','đang_sử_dụng')]}"/>
+          </header>
+
+          <sheet>
+            <group col="2">
+              <group>
+                <separator string="Thông tin chung" colspan="2"/>
+                <field name="phong_id"/>
+                <field name="nguoi_muon_id"/>
+
+                <field name="thiet_bi_ids" widget="many2many_tags"
+                       domain="[('vi_tri_hien_tai','=','kho'),
+                                ('trang_thai','=','san_sang'),
+                                ('trang_thai','!=','hong')]"/>
+              </group>
+            </group>
+
+            <group col="2">
+              <separator string="Thời gian Mượn Trả" colspan="2"/>
+              <field name="thoi_gian_muon_du_kien" string="Mượn dự kiến"/>
+              <field name="thoi_gian_tra_du_kien" string="Trả dự kiến"/>
+              <field name="thoi_gian_muon_thuc_te" string="Mượn thực tế" readonly="1"/>
+              <field name="thoi_gian_tra_thuc_te" string="Trả thực tế" readonly="1"/>
+            </group>
+
+            <notebook>
+              <page string="Chi Tiết Sử Dụng">
+                <field name="chi_tiet_su_dung_ids" readonly="1">
+                  <tree>
+                    <field name="nguoi_muon_id" string="Người mượn"/>
+                    <field name="thiet_bi_ids" widget="many2many_tags" string="Thiết bị"/>
+                    <field name="thoi_gian_muon_thuc_te" string="Mượn thực tế"/>
+                    <field name="thoi_gian_tra_thuc_te" string="Trả thực tế"/>
+                    <field name="trang_thai" string="Trạng thái"
+                           decoration-muted="trang_thai=='đã_trả'"
+                           decoration-danger="trang_thai=='đang_sử_dụng'"
+                           decoration-success="trang_thai=='đã_duyệt'"/>
+                  </tree>
+                </field>
+              </page>
+            </notebook>
+
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+
+    <!-- =========================
+         TREE VIEW - dat_phong
+         - Nút ở header của list (khỏi mở form)
+         - Không dùng attrs theo từng dòng (header không bám theo row được ổn định)
+         - Python method đã tự check trạng thái, sai sẽ raise UserError.
+    ========================== -->
+    <record id="view_dat_phong_tree" model="ir.ui.view">
+      <field name="name">dat_phong.tree</field>
+      <field name="model">dat_phong</field>
+      <field name="arch" type="xml">
+        <tree string="Danh sách Đăng Ký Mượn Phòng">
+          <header>
+            <button name="xac_nhan_duyet_phong" string="Duyệt" type="object" class="btn-primary"/>
+            <button name="huy_muon_phong" string="Hủy" type="object" class="btn-danger"/>
+            <button name="bat_dau_su_dung" string="Bắt đầu" type="object" class="btn-success"/>
+            <button name="huy_da_duyet" string="Hủy duyệt" type="object" class="btn-warning"/>
+            <button name="tra_phong" string="Trả phòng" type="object" class="btn-info"/>
+          </header>
+
+          <field name="phong_id" string="Phòng họp"/>
+          <field name="nguoi_muon_id" string="Người mượn"/>
+          <field name="thiet_bi_ids" widget="many2many_tags" string="Thiết bị"/>
+          <field name="thoi_gian_muon_du_kien" string="Mượn dự kiến"/>
+          <field name="thoi_gian_tra_du_kien" string="Trả dự kiến"/>
+          <field name="trang_thai" string="Trạng thái"
+                 decoration-muted="trang_thai=='đã_hủy'"
+                 decoration-danger="trang_thai=='đang_sử_dụng'"
+                 decoration-info="trang_thai=='đã_duyệt'"
+                 decoration-success="trang_thai=='chờ_duyệt'"/>
+        </tree>
+      </field>
+    </record>
+
+
+    <!-- =========================
+         SEARCH VIEW
+         (bắt buộc để actions.xml ref không lỗi)
+    ========================== -->
+    <record id="dat_phong_search" model="ir.ui.view">
+      <field name="name">dat_phong.search</field>
+      <field name="model">dat_phong</field>
+      <field name="arch" type="xml">
+        <search string="Tìm kiếm Đăng Ký Mượn Phòng">
+          <field name="phong_id"/>
+          <field name="nguoi_muon_id"/>
+          <field name="thiet_bi_ids"/>
+          <field name="thoi_gian_muon_du_kien"/>
+          <field name="thoi_gian_tra_du_kien"/>
+          <field name="trang_thai"/>
+          <separator/>
+          <filter string="Chờ duyệt" name="filter_cho_duyet" domain="[('trang_thai','=','chờ_duyệt')]"/>
+          <filter string="Đã duyệt" name="filter_da_duyet" domain="[('trang_thai','=','đã_duyệt')]"/>
+          <filter string="Đang sử dụng" name="filter_dang_su_dung" domain="[('trang_thai','=','đang_sử_dụng')]"/>
+          <filter string="Đã trả" name="filter_da_tra" domain="[('trang_thai','=','đã_trả')]"/>
+          <filter string="Đã hủy" name="filter_da_huy" domain="[('trang_thai','=','đã_hủy')]"/>
+        </search>
+      </field>
+    </record>
+
+  </data>
+</odoo>

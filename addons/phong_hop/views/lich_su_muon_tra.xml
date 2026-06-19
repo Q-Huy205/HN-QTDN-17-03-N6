@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <!-- TREE -->
+    <record id="view_lich_su_muon_tra_tree" model="ir.ui.view">
+      <field name="name">lich_su_muon_tra.tree</field>
+      <field name="model">lich_su_muon_tra</field>
+      <field name="arch" type="xml">
+        <tree string="Lịch Sử Mượn Trả" create="false">
+          <field name="ngay_su_dung"/>
+          <field name="phong_id"/>
+          <field name="tong_thoi_gian_su_dung"/>
+        </tree>
+      </field>
+    </record>
+
+    <!-- FORM (không cần nút trong form) -->
+    <record id="view_lich_su_muon_tra_form" model="ir.ui.view">
+      <field name="name">lich_su_muon_tra.form</field>
+      <field name="model">lich_su_muon_tra</field>
+      <field name="arch" type="xml">
+        <form string="Lịch Sử Mượn Trả">
+          <sheet>
+            <group col="2">
+              <group string="Thông tin">
+                <field name="ngay_su_dung"/>
+                <field name="phong_id"/>
+                <field name="tong_thoi_gian_su_dung" readonly="1"/>
+              </group>
+            </group>
+
+            <group string="Chi tiết sử dụng">
+              <field name="chi_tiet_su_dung_ids" readonly="1">
+                <tree>
+                  <field name="nguoi_muon_id"/>
+                  <field name="thoi_gian_muon_thuc_te"/>
+                  <field name="thoi_gian_tra_thuc_te"/>
+                  <field name="trang_thai"/>
+                </tree>
+              </field>
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <!-- SEARCH -->
+    <record id="lich_su_muon_tra_search" model="ir.ui.view">
+      <field name="name">lich_su_muon_tra.search</field>
+      <field name="model">lich_su_muon_tra</field>
+      <field name="arch" type="xml">
+        <search string="Tìm kiếm Lịch Sử Mượn Trả">
+          <field name="ngay_su_dung"/>
+          <field name="phong_id"/>
+        </search>
+      </field>
+    </record>
+
+    <!-- ACTION WINDOW -->
+    <record id="action_lich_su_muon_tra" model="ir.actions.act_window">
+      <field name="name">Lịch Sử Mượn Trả</field>
+      <field name="res_model">lich_su_muon_tra</field>
+      <field name="view_mode">tree,form</field>
+      <field name="search_view_id" ref="lich_su_muon_tra_search"/>
+    </record>
+
+    <!-- MENU -->
+    <menuitem id="menu_lich_su_muon_tra"
+              name="Lịch Sử Mượn Trả"
+              parent="menu_bao_cao"
+              action="action_lich_su_muon_tra"/>
+
+    <!-- ==============================
+         NÚT Ở NGOÀI DANH SÁCH (Tác vụ / Action)
+         Chỉ cần vào list -> bấm Tác vụ -> Cập nhật lịch sử
+         ============================== -->
+    <record id="srv_reload_lich_su_muon_tra" model="ir.actions.server">
+      <field name="name">Cập nhật lịch sử</field>
+      <field name="model_id" ref="model_lich_su_muon_tra"/>
+      <field name="binding_model_id" ref="model_lich_su_muon_tra"/>
+      <field name="binding_view_types">list</field>
+      <field name="state">code</field>
+      <field name="code">env['lich_su_muon_tra'].update_lich_su_muon_tra()</field>
+    </record>
+
+  </data>
+</odoo>

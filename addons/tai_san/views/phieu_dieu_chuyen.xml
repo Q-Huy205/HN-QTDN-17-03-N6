@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <!-- ===================================================== -->
+    <!-- SEQUENCE (khuyến nghị: chuyển sang data/sequence.xml) -->
+    <!-- ===================================================== -->
+    <record id="seq_phieu_dieu_chuyen" model="ir.sequence">
+      <field name="name">Phiếu Điều Chuyển</field>
+      <field name="code">phieu_dieu_chuyen</field>
+      <field name="prefix">PDC/</field>
+      <field name="padding">5</field>
+    </record>
+
+    <!-- ===================================================== -->
+    <!-- FORM VIEW -->
+    <!-- ===================================================== -->
+    <record id="view_phieu_dieu_chuyen_form" model="ir.ui.view">
+      <field name="name">phieu_dieu_chuyen.form</field>
+      <field name="model">phieu_dieu_chuyen</field>
+      <field name="arch" type="xml">
+        <form string="Phiếu điều chuyển tài sản">
+          <header>
+            <field name="trang_thai" widget="statusbar" statusbar_visible="nhap,duyet,hoan_thanh"/>
+
+            <button name="action_duyet" string="Duyệt" type="object"
+                    attrs="{'invisible': [('trang_thai', '!=', 'nhap')]}"
+                    class="btn-primary" icon="fa-check"/>
+
+            <button name="action_hoan_thanh" string="Hoàn thành" type="object"
+                    attrs="{'invisible': [('trang_thai', '!=', 'duyet')]}"
+                    class="btn-success" icon="fa-check-circle"/>
+
+            <button name="action_huy" string="Hủy" type="object"
+                    attrs="{'invisible': [('trang_thai', 'not in', ('nhap','duyet'))]}"
+                    class="btn-danger" icon="fa-times-circle"/>
+          </header>
+
+          <sheet>
+            <div class="oe_title">
+              <h1>
+                <field name="ten_phieu" readonly="1"/>
+              </h1>
+            </div>
+
+            <group string="Thông tin điều chuyển" col="2">
+              <field name="tai_san" required="1" placeholder="Chọn tài sản"/>
+              <field name="ngay_dieu_chuyen" widget="datetime" required="1"/>
+
+              <field name="vi_tri_hien_tai" readonly="1"/>
+              <field name="vi_tri_moi" required="1" placeholder="Chọn vị trí mới"/>
+            </group>
+
+            <group string="Ghi chú">
+              <field name="ghi_chu" widget="textarea" placeholder="Nhập ghi chú..."/>
+            </group>
+          </sheet>
+
+          <div class="oe_chatter">
+            <field name="message_follower_ids" widget="mail_followers"/>
+            <field name="message_ids" widget="mail_thread"/>
+          </div>
+        </form>
+      </field>
+    </record>
+
+    <!-- ===================================================== -->
+    <!-- KANBAN VIEW (FIX raw_value undefined) -->
+    <!-- ===================================================== -->
+    <record id="view_phieu_dieu_chuyen_kanban" model="ir.ui.view">
+      <field name="name">phieu_dieu_chuyen.kanban</field>
+      <field name="model">phieu_dieu_chuyen</field>
+      <field name="arch" type="xml">
+        <kanban class="o_kanban_view">
+          <!-- BẮT BUỘC: khai báo field dùng trong template -->
+          <field name="trang_thai"/>
+          <field name="ten_phieu"/>
+          <field name="tai_san"/>
+          <field name="vi_tri_hien_tai"/>
+          <field name="vi_tri_moi"/>
+          <field name="ngay_dieu_chuyen"/>
+
+          <templates>
+            <t t-name="kanban-box">
+              <div class="o_kanban_record card shadow-sm p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge badge-primary">
+                    <t t-esc="record.trang_thai.value or ''"/>
+                  </span>
+                  <span class="font-weight-bold">
+                    <t t-esc="record.ten_phieu.value or ''"/>
+                  </span>
+                </div>
+
+                <div>
+                  <strong>Tài sản:</strong>
+                  <t t-esc="record.tai_san.value and record.tai_san.value[1] or ''"/>
+                  <br/>
+
+                  <strong>Vị trí:</strong>
+                  <t t-esc="record.vi_tri_hien_tai.value and record.vi_tri_hien_tai.value[1] or ''"/>
+                  ➝
+                  <t t-esc="record.vi_tri_moi.value and record.vi_tri_moi.value[1] or ''"/>
+                  <br/>
+
+                  <strong>Ngày:</strong>
+                  <t t-esc="record.ngay_dieu_chuyen.value or ''"/>
+                </div>
+              </div>
+            </t>
+          </templates>
+        </kanban>
+      </field>
+    </record>
+
+    <!-- ===================================================== -->
+    <!-- SEARCH VIEW -->
+    <!-- ===================================================== -->
+        <record id="view_phieu_dieu_chuyen_search" model="ir.ui.view">
+        <field name="name">phieu_dieu_chuyen.search</field>
+        <field name="model">phieu_dieu_chuyen</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm phiếu điều chuyển">
+
+            <!-- Search fields -->
+            <field name="ten_phieu"/>
+            <field name="tai_san"/>
+            <field name="trang_thai"/>
+            <field name="vi_tri_moi"/>
+            <field name="ngay_dieu_chuyen"/>
+
+            <separator/>
+
+            <!-- Quick filters: luôn có name -->
+            <filter name="f_nhap" string="Nháp" domain="[('trang_thai','=','nhap')]"/>
+            <filter name="f_duyet" string="Đã duyệt" domain="[('trang_thai','=','duyet')]"/>
+            <filter name="f_hoan_thanh" string="Hoàn thành" domain="[('trang_thai','=','hoan_thanh')]"/>
+            <filter name="f_huy" string="Hủy" domain="[('trang_thai','=','huy')]"/>
+
+            <separator/>
+
+            <!-- Group By: chỉ chứa filter group_by -->
+            <group expand="0" string="Nhóm theo">
+                <filter name="g_trang_thai" string="Trạng thái" context="{'group_by':'trang_thai'}"/>
+                <filter name="g_tai_san" string="Tài sản" context="{'group_by':'tai_san'}"/>
+                <filter name="g_vi_tri_moi" string="Vị trí mới" context="{'group_by':'vi_tri_moi'}"/>
+                <filter name="g_ngay" string="Ngày điều chuyển" context="{'group_by':'ngay_dieu_chuyen'}"/>
+            </group>
+
+            </search>
+        </field>
+        </record>
+    <!-- ===================================================== -->
+    <!-- ACTION -->
+    <!-- ===================================================== -->
+    <record id="action_phieu_dieu_chuyen" model="ir.actions.act_window">
+      <field name="name">Phiếu Điều Chuyển</field>
+      <field name="res_model">phieu_dieu_chuyen</field>
+      <field name="view_mode">kanban,tree,form</field>
+      <field name="search_view_id" ref="view_phieu_dieu_chuyen_search"/>
+    </record>
+
+  </data>
+</odoo>

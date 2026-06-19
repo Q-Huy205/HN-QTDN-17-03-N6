@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <!-- ROOT -->
+    <menuitem id="menu_root" name="Quản lý tài sản" sequence="0"/>
+
+    <!-- TÀI SẢN -->
+    <menuitem id="menu_tai_san"
+              name="Quản lý tài sản"
+              parent="menu_root"
+              sequence="1"
+              action="tai_san.action_tai_san"/>
+
+    <!-- DANH MỤC -->
+    <menuitem id="menu_danh_muc"
+              name="Danh mục"
+              parent="menu_root"
+              sequence="2"/>
+
+    <menuitem id="menu_loai_tai_san"
+              name="Loại tài sản"
+              parent="menu_danh_muc"
+              sequence="10"
+              action="tai_san.action_loai_tai_san"/>
+
+    <menuitem id="menu_vi_tri"
+              name="Vị trí"
+              parent="menu_danh_muc"
+              sequence="20"
+              action="tai_san.action_vi_tri"/>
+
+    <menuitem id="menu_nha_cung_cap"
+              name="Nhà cung cấp"
+              parent="menu_danh_muc"
+              sequence="30"
+              action="tai_san.action_nha_cung_cap"/>
+
+    <!-- QUẢN LÝ PHIẾU / LỊCH SỬ -->
+    <menuitem id="menu_quan_ly_phieu_lich_su"
+              name="Quản lý phiếu"
+              parent="menu_root"
+              sequence="3"/>
+
+    <menuitem id="menu_phieu_muon"
+              name="Phiếu mượn"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="10"
+              action="tai_san.action_phieu_muon"/>
+
+    <menuitem id="menu_phieu_bao_tri"
+              name="Phiếu bảo trì"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="20"
+              action="tai_san.action_phieu_bao_tri"/>
+
+    <menuitem id="menu_phieu_dieu_chuyen"
+              name="Phiếu điều chuyển"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="30"
+              action="tai_san.action_phieu_dieu_chuyen"/>
+
+    <menuitem id="menu_phieu_thanh_ly"
+              name="Phiếu thanh lý"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="40"
+              action="tai_san.action_thanh_ly"/>
+
+    <menuitem id="menu_lich_su_dieu_chuyen"
+              name="Lịch sử điều chuyển"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="50"
+              action="tai_san.action_lich_su_dieu_chuyen"/>
+
+    <menuitem id="menu_lich_su_su_dung"
+              name="Lịch sử sử dụng"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="60"
+              action="tai_san.action_lich_su_su_dung"/>
+
+    <menuitem id="menu_lich_su_bao_tri"
+              name="Lịch sử bảo trì"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="70"
+              action="tai_san.action_lich_su_bao_tri"/>
+
+    <menuitem id="menu_khau_hao"
+              name="Khấu hao"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="80"
+              action="tai_san.action_khau_hao"/>
+
+    <!-- THỐNG KÊ -->
+    <menuitem id="menu_tai_san_statistics"
+              name="Thống kê"
+              parent="menu_root"
+              sequence="20"/>
+
+    <menuitem id="menu_tai_san_pie_trang_thai"
+              name="Trạng thái tài sản (Pie)"
+              parent="menu_tai_san_statistics"
+              sequence="10"
+              action="tai_san.action_tai_san_pie_trang_thai"/>
+
+    <menuitem id="menu_tai_san_bar_gia_tri"
+              name="Giá trị hiện tại (Bar)"
+              parent="menu_tai_san_statistics"
+              sequence="20"
+              action="tai_san.action_tai_san_bar_gia_tri"/>
+
+    <menuitem id="menu_lich_su_su_dung_line"
+              name="Lịch sử sử dụng (Line)"
+              parent="menu_tai_san_statistics"
+              sequence="30"
+              action="tai_san.action_lich_su_su_dung_line"/>
+
+    <menuitem id="menu_tai_san_pie_nha_cung_cap"
+              name="Nhà cung cấp (Pie)"
+              parent="menu_tai_san_statistics"
+              sequence="40"
+              action="tai_san.action_tai_san_pie_nha_cung_cap"/>
+
+  </data>
+</odoo>

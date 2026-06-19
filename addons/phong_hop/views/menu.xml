@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <!-- =========================================================
+         ROOT
+    ========================================================== -->
+    <menuitem id="menu_root"
+              name="Quản lý phòng họp"
+              sequence="0"/>
+
+    <!-- =========================================================
+         DANH MỤC
+    ========================================================== -->
+    <menuitem id="menu_danh_muc"
+              name="Danh mục"
+              parent="menu_root"
+              sequence="10"/>
+
+    <menuitem id="menu_quan_ly_phong_hop"
+              name="Danh sách các phòng"
+              parent="menu_danh_muc"
+              action="action_quan_ly_phong_hop"
+              sequence="10"/>
+
+    <menuitem id="menu_thiet_bi"
+              name="Quản lý Thiết Bị"
+              parent="menu_danh_muc"
+              action="action_thiet_bi"
+              sequence="20"/>
+
+    <!-- =========================================================
+         NGHIỆP VỤ: ĐĂNG KÝ
+    ========================================================== -->
+    <menuitem id="menu_nghiep_vu"
+              name="Đăng ký"
+              parent="menu_root"
+              sequence="20"/>
+
+    <menuitem id="menu_dat_phong_dang_ky"
+              name="Đăng ký mượn phòng"
+              parent="menu_nghiep_vu"
+              action="action_dat_phong_dang_ky"
+              sequence="10"/>
+
+    <!-- =========================================================
+         QUY TRÌNH / TRẠNG THÁI
+    ========================================================== -->
+    <menuitem id="menu_quy_trinh"
+              name="Quy trình duyệt"
+              parent="menu_root"
+              sequence="30"/>
+
+    <menuitem id="menu_dat_phong_cho_duyet"
+              name="Danh sách chờ duyệt"
+              parent="menu_quy_trinh"
+              action="action_dat_phong_cho_duyet"
+              sequence="10"/>
+
+    <menuitem id="menu_dat_phong_da_duyet"
+              name="Danh sách đã duyệt"
+              parent="menu_quy_trinh"
+              action="action_dat_phong_da_duyet"
+              sequence="20"/>
+
+    <menuitem id="menu_dat_phong_dang_su_dung"
+              name="Danh sách phòng đang sử dụng"
+              parent="menu_quy_trinh"
+              action="action_dat_phong_dang_su_dung"
+              sequence="30"/>
+
+    <menuitem id="menu_dat_phong_da_tra"
+              name="Danh sách đã trả"
+              parent="menu_quy_trinh"
+              action="action_dat_phong_da_tra"
+              sequence="40"/>
+
+    <menuitem id="menu_dat_phong_da_huy"
+              name="Danh sách đã hủy"
+              parent="menu_quy_trinh"
+              action="action_dat_phong_da_huy"
+              sequence="50"/>
+
+    <!-- =========================================================
+         BÁO CÁO / LỊCH SỬ
+    ========================================================== -->
+    <menuitem id="menu_bao_cao"
+              name="Báo cáo"
+              parent="menu_root"
+              sequence="40"/>
+
+    <menuitem id="menu_lich_su_thay_doi"
+              name="Lịch sử thay đổi (Audit)"
+              parent="menu_bao_cao"
+              action="action_lich_su_thay_doi"
+              sequence="10"/>
+
+    <menuitem id="menu_lich_su_muon_tra"
+              name="Lịch sử mượn trả"
+              parent="menu_bao_cao"
+              action="action_lich_su_muon_tra"
+              sequence="20"/>
+
+    <menuitem id="menu_dashboard_trang_thai"
+              name="Dashboard"
+              parent="menu_bao_cao"
+              action="action_dat_phong_dashboard"
+              sequence="30"/>
+
+  </data>
+</odoo>
