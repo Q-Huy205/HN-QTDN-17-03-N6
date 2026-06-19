@@ -94,11 +94,7 @@
     </record>
 
 
-    <menuitem id="menu_phong_hop_ai_wizard"
-              name="Trợ lý đặt phòng (AI)"
-              parent="phong_hop.menu_root"
-              action="action_phong_hop_ai_wizard"
-              sequence="25"/>
+    <!-- Menuitem AI wizard: đã gom về views/menu.xml (load cuối) để tránh phụ thuộc vòng -->
 
 
   </data>

@@ -8,8 +8,7 @@
     "data": [
         "security/ir.model.access.csv",
 
-        "views/menu.xml",  
-
+        # Views + actions phải load TRƯỚC menu (menu tham chiếu các action này)
         "views/quan_ly_phong_hop.xml",
         "views/thiet_bi.xml",
         "views/dat_phong.xml",
@@ -17,8 +16,10 @@
         "views/lich_su_muon_tra.xml",
         "views/dat_phong_dashboard.xml",
         "views/actions.xml",
+        "views/phong_hop_ai_wizard_views.xml",
 
-        "views/phong_hop_ai_wizard_views.xml",  
+        # Menu load CUỐI CÙNG (đã gom toàn bộ menuitem vào đây)
+        "views/menu.xml",
     ],
     "installable": True,
     "application": True,

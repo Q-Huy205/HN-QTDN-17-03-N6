@@ -43,6 +43,12 @@
               action="action_dat_phong_dang_ky"
               sequence="10"/>
 
+    <menuitem id="menu_phong_hop_ai_wizard"
+              name="Trợ lý đặt phòng (AI)"
+              parent="menu_nghiep_vu"
+              action="action_phong_hop_ai_wizard"
+              sequence="20"/>
+
     <!-- =========================================================
          QUY TRÌNH / TRẠNG THÁI
     ========================================================== -->
