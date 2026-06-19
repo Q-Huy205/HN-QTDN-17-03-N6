@@ -39,6 +39,7 @@ services:
       - ./addons/tai_san:/mnt/extra-addons/tai_san:ro
       - ./addons/phong_hop:/mnt/extra-addons/phong_hop:ro
       - ./addons/quan_ly_van_ban:/mnt/extra-addons/quan_ly_van_ban:ro
+      - ./scripts:/mnt/scripts:ro
       - ttdn-web:/var/lib/odoo
 
 volumes:
