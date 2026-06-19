@@ -75,6 +75,12 @@ class TaiSan(models.Model):
 
     nguoi_su_dung_id = fields.Many2one("nhan_vien", string="Người đang sử dụng", tracking=True)
 
+    # ✅ Cải tiến (Đề 6): đánh dấu tài sản là phòng họp dùng chung
+    # Lưu ý: KHÔNG đặt Many2one trỏ sang quan_ly_phong_hop ở đây để tránh phụ thuộc vòng
+    # (phong_hop đã depends tai_san). Liên kết ngược đặt bên model quan_ly_phong_hop.
+    is_phong_hop = fields.Boolean(string="Là phòng họp", default=False, tracking=True)
+    suc_chua = fields.Integer(string="Sức chứa (người)", tracking=True)
+
     thanh_ly_id = fields.Many2one("thanh_ly", string="Phiếu thanh lý", readonly=True, tracking=True)
 
     # History relations

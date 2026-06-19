@@ -15,6 +15,7 @@
                 <field name="name"/>
                 <field name="loai_phong"/>
                 <field name="suc_chua"/>
+                <field name="tai_san_id"/>
                 <field name="active"/>
                 <field name="trang_thai" readonly="1"/>
               </group>

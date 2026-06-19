@@ -71,6 +71,11 @@
                 <field name="nguoi_su_dung_id"
                        attrs="{'required': [('trang_thai', '=', 'Muon')],
                               'invisible': [('trang_thai', '!=', 'Muon')]}"/>
+
+                <field name="is_phong_hop"/>
+                <field name="suc_chua"
+                       attrs="{'invisible': [('is_phong_hop', '=', False)],
+                              'required': [('is_phong_hop', '=', True)]}"/>
               </group>
 
               <group string="Thông tin mua">
