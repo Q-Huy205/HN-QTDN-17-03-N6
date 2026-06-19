@@ -80,7 +80,8 @@ class HopDong(models.Model):
                 continue
 
             start = r.ngay_bat_dau
-            end = r.ngay_ket_thuc or fields.Date.max
+            # Fix: fields.Date không có thuộc tính 'max' -> dùng ngày xa trong tương lai
+            end = r.ngay_ket_thuc or fields.Date.to_date("9999-12-31")
 
             domain = [
                 ("id", "!=", r.id),

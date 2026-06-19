@@ -23,7 +23,48 @@
       <field name="padding">5</field>
     </record>
 
-    <!-- Nếu có các sequence khác: bảo trì, điều chuyển, khấu hao, phiếu... thì thêm tương tự -->
+    <!-- Bổ sung các sequence còn thiếu (bản K16 gọi next_by_code nhưng chưa định nghĩa) -->
+    <record id="seq_khau_hao" model="ir.sequence">
+      <field name="name">Khấu hao</field>
+      <field name="code">khau_hao</field>
+      <field name="prefix">KH/</field>
+      <field name="padding">5</field>
+    </record>
+
+    <record id="seq_lich_su_bao_tri" model="ir.sequence">
+      <field name="name">Lịch sử bảo trì</field>
+      <field name="code">lich_su_bao_tri</field>
+      <field name="prefix">LSB/</field>
+      <field name="padding">5</field>
+    </record>
+
+    <record id="seq_phieu_bao_tri" model="ir.sequence">
+      <field name="name">Phiếu bảo trì</field>
+      <field name="code">phieu_bao_tri</field>
+      <field name="prefix">BT/</field>
+      <field name="padding">5</field>
+    </record>
+
+    <record id="seq_phieu_dieu_chuyen" model="ir.sequence">
+      <field name="name">Phiếu điều chuyển</field>
+      <field name="code">phieu_dieu_chuyen</field>
+      <field name="prefix">DC/</field>
+      <field name="padding">5</field>
+    </record>
+
+    <record id="seq_thanh_ly" model="ir.sequence">
+      <field name="name">Phiếu thanh lý</field>
+      <field name="code">thanh_ly</field>
+      <field name="prefix">TL/</field>
+      <field name="padding">5</field>
+    </record>
+
+    <record id="seq_vi_tri" model="ir.sequence">
+      <field name="name">Vị trí</field>
+      <field name="code">vi_tri</field>
+      <field name="prefix">VT/</field>
+      <field name="padding">5</field>
+    </record>
 
   </data>
 </odoo>
