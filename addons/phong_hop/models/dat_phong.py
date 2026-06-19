@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
+import json
+import logging
 from odoo import models, fields, api, exceptions
 from datetime import datetime
+
+_logger = logging.getLogger(__name__)
+
+# ✅ Cải tiến (Mức 3 - External API): thông báo Telegram khi đặt phòng được duyệt
+# Cấu hình ở System Parameters: phong_hop.telegram_bot_token, phong_hop.telegram_chat_id
+TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 
 
 class DatPhong(models.Model):
@@ -238,6 +246,41 @@ class DatPhong(models.Model):
         return res
 
     # ==========================================================
+    # ✅ THÔNG BÁO TELEGRAM (External API)
+    # ==========================================================
+    def _send_telegram(self, message):
+        """Gửi thông báo Telegram. Lỗi/thiếu cấu hình -> log & bỏ qua, không chặn nghiệp vụ."""
+        ICP = self.env["ir.config_parameter"].sudo()
+        token = (ICP.get_param("phong_hop.telegram_bot_token") or "").strip()
+        chat_id = (ICP.get_param("phong_hop.telegram_chat_id") or "").strip()
+        if not token or not chat_id:
+            return
+        try:
+            import requests
+            requests.post(
+                TELEGRAM_API.format(token=token),
+                data=json.dumps({
+                    "chat_id": chat_id,
+                    "text": message,
+                    "parse_mode": "HTML",
+                }),
+                headers={"Content-Type": "application/json"},
+                timeout=10,
+            )
+        except Exception as e:
+            _logger.warning("phong_hop: gửi Telegram lỗi (%s).", e)
+
+    def _telegram_message_duyet(self):
+        self.ensure_one()
+        return (
+            "✅ <b>Đặt phòng đã được DUYỆT</b>\n"
+            f"• Phòng: {self.phong_id.name or '-'}\n"
+            f"• Người mượn: {self.nguoi_muon_id.ho_ten or '-'}\n"
+            f"• Số người: {self.so_nguoi_du_hop or '-'}\n"
+            f"• Thời gian: {self.thoi_gian_muon_du_kien} → {self.thoi_gian_tra_du_kien}"
+        )
+
+    # ==========================================================
     # NGHIỆP VỤ
     # ==========================================================
     def xac_nhan_duyet_phong(self):
@@ -254,6 +297,9 @@ class DatPhong(models.Model):
             truoc = record.trang_thai
             record.with_context(skip_audit_write=True).write({"trang_thai": "đã_duyệt"})
             record._ghi_audit(record, "duyet", truoc, record.trang_thai)
+
+            # ✅ External API: thông báo Telegram khi duyệt thành công
+            record._send_telegram(record._telegram_message_duyet())
 
             # Hủy các yêu cầu cùng phòng trùng thời gian (chỉ chờ duyệt)
             cung_phong_trung = self.search([
