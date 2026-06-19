@@ -438,6 +438,8 @@ class PhongHopAIWizard(models.TransientModel):
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
+                    # UA trình duyệt để tránh Cloudflare chặn (lỗi 403 code 1010)
+                    "User-Agent": "Mozilla/5.0",
                 },
                 data=json.dumps(payload),
                 timeout=20,
