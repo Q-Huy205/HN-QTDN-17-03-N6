@@ -1,0 +1,46 @@
+# Compose để CHẠY THỬ trên máy local (Windows/Mac/Linux).
+# Khác docker-compose.yml gốc (chỉ có Postgres + path Linux server của trường).
+# Cách dùng:
+#   1) Test cài 3 module:  docker compose -f docker-compose.run.yml run --rm odoo \
+#        odoo -i nhan_su,tai_san,phong_hop -d ttdn --stop-after-init
+#   2) Chạy web bình thường: docker compose -f docker-compose.run.yml up -d
+#      -> mở http://localhost:8069  (DB: ttdn, user: admin/admin khi tạo mới)
+services:
+  db:
+    image: postgres:13
+    container_name: ttdn_db
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - ttdn-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "odoo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  odoo:
+    image: odoo:15
+    container_name: ttdn_odoo
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8069:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo
+    # Chỉ mount module custom -> /mnt/extra-addons (core lấy từ image odoo:15)
+    volumes:
+      - ./addons/nhan_su:/mnt/extra-addons/nhan_su:ro
+      - ./addons/tai_san:/mnt/extra-addons/tai_san:ro
+      - ./addons/phong_hop:/mnt/extra-addons/phong_hop:ro
+      - ./addons/quan_ly_van_ban:/mnt/extra-addons/quan_ly_van_ban:ro
+      - ttdn-web:/var/lib/odoo
+
+volumes:
+  ttdn-db:
+  ttdn-web:
