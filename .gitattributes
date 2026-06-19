@@ -1,0 +1,2 @@
+# Ép script shell luôn dùng LF để chạy được bash trên mọi máy (tránh lỗi \r)
+*.sh text eol=lf
