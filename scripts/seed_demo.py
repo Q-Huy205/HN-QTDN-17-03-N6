@@ -10,8 +10,13 @@ import pytz
 from datetime import datetime, timedelta, date
 _log = logging.getLogger("seed_demo")
 
+# Đặt múi giờ Việt Nam cho admin (để web hiển thị đúng giờ)
+_admin = env.ref("base.user_admin", raise_if_not_found=False)
+if _admin and not _admin.tz:
+    _admin.tz = "Asia/Ho_Chi_Minh"
+
 # Giờ nhập là giờ LOCAL -> quy đổi UTC để lưu (Odoo lưu Datetime theo UTC)
-_TZ = pytz.timezone(env.user.tz or "Asia/Ho_Chi_Minh")
+_TZ = pytz.timezone("Asia/Ho_Chi_Minh")
 def L2U(naive_local):
     return _TZ.localize(naive_local).astimezone(pytz.utc).replace(tzinfo=None)
 

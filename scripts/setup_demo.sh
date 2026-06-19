@@ -18,14 +18,11 @@ sleep 3
 echo ">>> [2/5] Cài 3 module (nhan_su, tai_san, phong_hop) vào DB '$DB'..."
 $CF run --rm odoo odoo -i nhan_su,tai_san,phong_hop -d "$DB" $DBARGS --stop-after-init --without-demo=all
 
-echo ">>> [3/5] Khởi động Odoo web..."
+echo ">>> [3/4] Khởi động Odoo web..."
 $CF up -d odoo
 echo "    (chờ Odoo sẵn sàng)"; sleep 10
 
-echo ">>> [4/5] Đặt múi giờ Việt Nam cho admin..."
-$CF exec -T odoo bash -c "echo \"env['res.users'].browse(2).tz='Asia/Ho_Chi_Minh'; env.cr.commit()\" | odoo shell -d $DB $DBARGS --no-http" >/dev/null 2>&1 || true
-
-echo ">>> [5/5] Seed dữ liệu demo đầy đủ..."
+echo ">>> [4/4] Seed dữ liệu demo đầy đủ (kèm set múi giờ VN)..."
 $CF exec -T odoo bash -c "odoo shell -d $DB $DBARGS --no-http < /mnt/scripts/seed_demo.py" 2>&1 | grep -E "SEED_DONE" || echo "    (xem log nếu seed không in SEED_DONE)"
 
 echo ""

@@ -14,12 +14,23 @@ cd HN-QTDN-17-03-N6
 ```
 
 ## 2. Chạy 1 lệnh duy nhất (khuyến nghị)
-Mở **Git Bash** tại thư mục repo:
+
+**Trên Windows dùng PowerShell** (đơn giản nhất):
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\setup_demo.ps1
+```
+
+**Hoặc dùng Git Bash / Linux / Mac:**
 ```bash
 bash scripts/setup_demo.sh
 ```
+
+> ⚠️ **Đừng gõ `bash ...` trong cửa sổ PowerShell!** Khi đó `bash` sẽ gọi WSL và báo
+> *"The command 'docker' could not be found in this WSL 2 distro"*. Hãy dùng file `.ps1`
+> ở trên, **hoặc** mở app **"Git Bash"** riêng rồi mới chạy file `.sh`.
+
 Lần đầu sẽ tải image `odoo:15` + `postgres:13` (~1.5GB, hơi lâu). Script tự động:
-cài 3 module → khởi động web → set múi giờ VN → seed dữ liệu demo.
+cài 3 module → khởi động web → seed dữ liệu demo (kèm set múi giờ VN).
 
 Khi thấy `XONG!` → mở **http://localhost:8069**
 - Database: `ttdn_test` · Đăng nhập: **admin / admin**
