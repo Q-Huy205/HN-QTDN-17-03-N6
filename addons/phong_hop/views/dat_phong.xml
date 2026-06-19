@@ -43,6 +43,9 @@
                 <field name="phong_id"/>
                 <field name="nguoi_muon_id"/>
 
+                <field name="so_nguoi_du_hop"/>
+                <field name="suc_chua_phong"/>
+
                 <field name="thiet_bi_ids" widget="many2many_tags"
                        domain="[('vi_tri_hien_tai','=','kho'),
                                 ('trang_thai','=','san_sang'),
@@ -102,6 +105,7 @@
 
           <field name="phong_id" string="Phòng họp"/>
           <field name="nguoi_muon_id" string="Người mượn"/>
+          <field name="so_nguoi_du_hop" string="Số người"/>
           <field name="thiet_bi_ids" widget="many2many_tags" string="Thiết bị"/>
           <field name="thoi_gian_muon_du_kien" string="Mượn dự kiến"/>
           <field name="thoi_gian_tra_du_kien" string="Trả dự kiến"/>

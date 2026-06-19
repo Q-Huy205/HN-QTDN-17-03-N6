@@ -11,6 +11,14 @@ class DatPhong(models.Model):
     phong_id = fields.Many2one("quan_ly_phong_hop", string="Phòng họp", required=True)
     nguoi_muon_id = fields.Many2one("nhan_vien", string="Người mượn", required=True)
 
+    # ✅ Cải tiến: số người dự họp để kiểm tra sức chứa phòng
+    so_nguoi_du_hop = fields.Integer(string="Số người dự họp", default=1)
+    suc_chua_phong = fields.Integer(
+        string="Sức chứa phòng",
+        related="phong_id.suc_chua",
+        readonly=True,
+    )
+
     thiet_bi_ids = fields.Many2many(
         "thiet_bi",
         "dat_phong_thiet_bi_rel",
@@ -100,6 +108,24 @@ class DatPhong(models.Model):
         for r in self:
             if r.trang_thai in ["chờ_duyệt", "đã_duyệt", "đang_sử_dụng"]:
                 r._kiem_tra_trung_phong_voi_don_da_duyet_hoac_dang_sd()
+
+    # ==========================================================
+    # ✅ KIỂM TRA SỨC CHỨA PHÒNG
+    # (Cải tiến: K16 có field suc_chua nhưng bỏ không dùng để validate)
+    # ==========================================================
+    @api.constrains("so_nguoi_du_hop", "phong_id")
+    def _constrains_suc_chua(self):
+        for r in self:
+            if not r.phong_id or not r.so_nguoi_du_hop:
+                continue
+            if r.so_nguoi_du_hop <= 0:
+                raise exceptions.ValidationError("Số người dự họp phải lớn hơn 0.")
+            suc_chua = r.phong_id.suc_chua or 0
+            if suc_chua and r.so_nguoi_du_hop > suc_chua:
+                raise exceptions.ValidationError(
+                    f"Phòng '{r.phong_id.name}' chỉ chứa tối đa {suc_chua} người, "
+                    f"nhưng số người dự họp đăng ký là {r.so_nguoi_du_hop}."
+                )
 
     # ==========================================================
     # TRÙNG THIẾT BỊ THEO KHUNG GIỜ (dự kiến)
