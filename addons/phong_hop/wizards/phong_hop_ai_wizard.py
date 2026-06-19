@@ -496,9 +496,27 @@ class PhongHopAIWizard(models.TransientModel):
         self.so_nguoi = max(so_nguoi, 0)
         self.yeu_cau_loai_thiet_bi = ",".join(req_qty_map.keys()) if req_qty_map else ""
         self.yeu_cau_so_luong_tb = ", ".join([f"{k}:{v}" for k, v in req_qty_map.items()]) if req_qty_map else ""
-        self.thoi_gian_muon_du_kien = fields.Datetime.to_string(dt_from)
-        self.thoi_gian_tra_du_kien = fields.Datetime.to_string(dt_to)
+        self.thoi_gian_muon_du_kien = self._local_to_utc(dt_from)
+        self.thoi_gian_tra_du_kien = self._local_to_utc(dt_to)
         return req_qty_map
+
+    # ✅ Timezone helpers: wizard hiểu input là giờ LOCAL của user,
+    # nhưng Odoo lưu Datetime theo UTC -> phải quy đổi ở ranh giới.
+    def _tzname(self):
+        return self.env.context.get("tz") or self.env.user.tz or "Asia/Ho_Chi_Minh"
+
+    def _local_to_utc(self, naive_local):
+        import pytz
+        tz = pytz.timezone(self._tzname())
+        return tz.localize(naive_local).astimezone(pytz.utc).replace(tzinfo=None)
+
+    def _utc_to_local_str(self, val):
+        if not val:
+            return ""
+        import pytz
+        dt = fields.Datetime.from_string(val)
+        tz = pytz.timezone(self._tzname())
+        return pytz.utc.localize(dt).astimezone(tz).strftime("%Y-%m-%d %H:%M:%S")
 
     def _extract_requirements(self):
         self.ensure_one()
@@ -537,8 +555,8 @@ class PhongHopAIWizard(models.TransientModel):
         self.so_nguoi = so_nguoi or 0
         self.yeu_cau_loai_thiet_bi = ",".join(loai_tb) if loai_tb else ""
         self.yeu_cau_so_luong_tb = ", ".join([f"{k}:{v}" for k, v in req_qty_map.items()]) if req_qty_map else ""
-        self.thoi_gian_muon_du_kien = fields.Datetime.to_string(dt_from)
-        self.thoi_gian_tra_du_kien = fields.Datetime.to_string(dt_to)
+        self.thoi_gian_muon_du_kien = self._local_to_utc(dt_from)
+        self.thoi_gian_tra_du_kien = self._local_to_utc(dt_to)
 
         return req_qty_map
 
@@ -664,8 +682,8 @@ class PhongHopAIWizard(models.TransientModel):
             cand_from = cursor
             cand_to = cand_from + timedelta(minutes=duration_minutes)
 
-            cand_from_str = fields.Datetime.to_string(cand_from)
-            cand_to_str = fields.Datetime.to_string(cand_to)
+            cand_from_str = fields.Datetime.to_string(self._local_to_utc(cand_from))
+            cand_to_str = fields.Datetime.to_string(self._local_to_utc(cand_to))
 
             rooms = self._search_free_rooms_ranked(cand_from_str, cand_to_str, so_nguoi, req_qty_map)
             if rooms:
@@ -714,14 +732,14 @@ class PhongHopAIWizard(models.TransientModel):
             slot_lines.append(
                 f"Tổng số khung giờ có phòng rảnh (bước {int(self.buoc_phut or 30)} phút): {len(all_slots)}"
             )
-            slot_lines.append(f"Khung giờ bạn yêu cầu: {dt_from_str} → {dt_to_str}")
+            slot_lines.append(f"Khung giờ bạn yêu cầu: {self._utc_to_local_str(dt_from_str)} → {self._utc_to_local_str(dt_to_str)}")
             slot_lines.append("Danh sách khung giờ rảnh (ưu tiên theo score):")
 
             for (score, a, b, rooms) in all_slots:
                 top = rooms[:3]
                 room_names = ", ".join([f"{r.name}(sc:{r.suc_chua})" for r in top])
                 mark = " [YÊU CẦU]" if (a == dt_from_str and b == dt_to_str) else ""
-                slot_lines.append(f"- {a} → {b}{mark}: {room_names} | score={score}")
+                slot_lines.append(f"- {self._utc_to_local_str(a)} → {self._utc_to_local_str(b)}{mark}: {room_names} | score={score}")
         else:
             slot_lines.append("Không tìm thấy khung giờ nào có phòng rảnh trong khoảng quét của ngày.")
 
@@ -731,7 +749,7 @@ class PhongHopAIWizard(models.TransientModel):
         lines = []
         if self.so_nguoi:
             lines.append(f"- Số người: {self.so_nguoi}")
-        lines.append(f"- Thời gian: {dt_from_str} → {dt_to_str}")
+        lines.append(f"- Thời gian: {self._utc_to_local_str(dt_from_str)} → {self._utc_to_local_str(dt_to_str)}")
         if req_qty_map:
             lines.append("- Thiết bị yêu cầu: " + ", ".join([f"{k} x{v}" for k, v in req_qty_map.items()]))
 
