@@ -270,6 +270,15 @@ class DatPhong(models.Model):
         except Exception as e:
             _logger.warning("phong_hop: gửi Telegram lỗi (%s).", e)
 
+    def _fmt_local(self, val):
+        """Datetime field (UTC) -> chuỗi giờ LOCAL của user để hiển thị."""
+        if not val:
+            return "-"
+        import pytz
+        tz = pytz.timezone(self.env.context.get("tz") or self.env.user.tz or "Asia/Ho_Chi_Minh")
+        dt = fields.Datetime.from_string(val)
+        return pytz.utc.localize(dt).astimezone(tz).strftime("%d/%m/%Y %H:%M")
+
     def _telegram_message_duyet(self):
         self.ensure_one()
         return (
@@ -277,7 +286,7 @@ class DatPhong(models.Model):
             f"• Phòng: {self.phong_id.name or '-'}\n"
             f"• Người mượn: {self.nguoi_muon_id.ho_ten or '-'}\n"
             f"• Số người: {self.so_nguoi_du_hop or '-'}\n"
-            f"• Thời gian: {self.thoi_gian_muon_du_kien} → {self.thoi_gian_tra_du_kien}"
+            f"• Thời gian: {self._fmt_local(self.thoi_gian_muon_du_kien)} → {self._fmt_local(self.thoi_gian_tra_du_kien)}"
         )
 
     # ==========================================================
