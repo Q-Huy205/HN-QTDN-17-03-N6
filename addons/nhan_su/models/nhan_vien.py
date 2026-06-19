@@ -13,6 +13,9 @@ class NhanVien(models.Model):
     ma_dinh_danh = fields.Char(string="Mã định danh", required=True, index=True)
     ho_ten = fields.Char(string="Họ tên", required=True)
 
+    # ✅ Cải tiến: ảnh đại diện nhân viên
+    hinh_anh = fields.Image(string="Ảnh đại diện", max_width=1024, max_height=1024)
+
     ngay_sinh = fields.Date(string="Ngày sinh")
     que_quan = fields.Char(string="Quê quán")
     dia_chi = fields.Char(string="Địa chỉ")

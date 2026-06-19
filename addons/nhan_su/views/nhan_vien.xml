@@ -8,6 +8,7 @@
             <field name="arch" type="xml">
                 <form string="Nhân viên">
                     <sheet>
+                        <field name="hinh_anh" widget="image" class="oe_avatar"/>
                         <div class="oe_title">
                             <h1>
                                 <field name="ho_ten" placeholder="Họ tên..."/>
