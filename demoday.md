@@ -1,153 +1,116 @@
-# DEMO DAY — Báo cáo Cải tiến Dự án
+# DEMO DAY — Thuyết minh Nghiệp vụ & Cải tiến
 
-**Đề tài:** Đề 6 — Quản lý Tài sản + Phòng họp (tích hợp HRM) · Odoo 15
+**Đề tài:** Đề 6 — Quản lý Tài sản + Phòng họp, tích hợp Quản lý Nhân sự (HRM) · Nền tảng **Odoo 15**
 **Kế thừa từ:** nhóm CNTT16-05 N10 — https://github.com/tranchienthinh-0000/TTDN-16-05-N10
 **Repo nhóm:** https://github.com/Q-Huy205/HN-QTDN-17-03-N6
 
-> Tài liệu này liệt kê **cái gì MỚI thêm**, **cái gì SỬA/làm mới** so với bản kế thừa,
-> kèm **tham chiếu file + số dòng** và **commit** để thầy đối chiếu nhanh.
+> **Cách dùng tài liệu này khi demo:** Phần **I** là bài nói theo 3 mức chấm điểm (đọc trôi cho thầy nghe).
+> Phần **II–IV** là tra cứu nhanh khi thầy hỏi "cái này nằm ở đâu trong code".
 
 ---
 
-## A. TÓM TẮT NHANH
-
-| # | Hạng mục | Loại | Mức điểm | Vị trí chính |
-|---|----------|------|----------|--------------|
-| 1 | Kiểm tra sức chứa phòng khi đặt | 🆕 Mới | Mức 2 | [dat_phong.py:125](addons/phong_hop/models/dat_phong.py#L125) |
-| 2 | Gắn phòng họp vào Tài sản (`is_phong_hop`) | 🆕 Mới | Đúng tinh thần Đề 6 | [tai_san.py:81](addons/tai_san/models/tai_san.py#L81) |
-| 3 | Trợ lý AI đặt phòng dùng **LLM thật (Groq)** | 🆕 Mới | Mức 3 (AI) | [phong_hop_ai_wizard.py:405](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L405) |
-| 4 | Thông báo **Telegram** khi duyệt | 🆕 Mới | Mức 3 (External API) | [dat_phong.py:251](addons/phong_hop/models/dat_phong.py#L251) |
-| 5 | Ảnh đại diện nhân viên | 🆕 Mới | HRM | [nhan_vien.py:17](addons/nhan_su/models/nhan_vien.py#L17) |
-| 6 | Sửa lỗi thứ tự load menu (crash cài đặt) | 🔧 Sửa | — | [phong_hop/\_\_manifest\_\_.py:22](addons/phong_hop/__manifest__.py#L22) |
-| 7 | Sửa bug `fields.Date.max` (crash tạo hợp đồng) | 🔧 Sửa | — | [hop_dong.py:84](addons/nhan_su/models/hop_dong.py#L84) |
-| 8 | Bổ sung 6 sequence còn thiếu (trùng mã 'New') | 🔧 Sửa | — | [sequence.xml:27](addons/tai_san/data/sequence.xml#L27) |
-| 9 | Sửa lệch múi giờ +7 (wizard + Telegram) | 🔧 Sửa | — | [phong_hop_ai_wizard.py:508](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L508) |
-| 10 | Sửa Groq bị Cloudflare chặn (User-Agent) | 🔧 Sửa | — | [phong_hop_ai_wizard.py:442](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L442) |
-| 11 | Hạ tầng Docker + seed + tài liệu demo | 🆕 Mới | — | [DEMO_SETUP.md](DEMO_SETUP.md) |
-
-Tổng cộng **16 commit** có lịch sử rõ ràng (xem mục E).
+## Bối cảnh doanh nghiệp giả định
+Một **công ty dịch vụ/agency** có nhiều phòng ban. Công ty cần quản lý **tài sản** (laptop, màn hình, phòng họp...) và **điều phối phòng họp dùng chung** — tránh cảnh 2 nhóm cùng giành 1 phòng một khung giờ. Tất cả phải gắn với **một danh sách nhân viên duy nhất** (HRM) để biết "ai đang giữ tài sản gì", "ai đặt phòng nào".
 
 ---
 
-## B. TÍNH NĂNG MỚI (chi tiết)
+# I. NGHIỆP VỤ THEO 3 MỨC (phần chấm điểm)
 
-### 1. Kiểm tra sức chứa phòng họp khi đặt 🆕 (Mức 2)
-- **Bản gốc:** model phòng có field `suc_chua` nhưng **không dùng để kiểm tra** → có thể đặt 100 người vào phòng 10 chỗ.
-- **Cải tiến:** thêm `so_nguoi_du_hop` + ràng buộc chặn vượt sức chứa.
-- **Code:**
-  - Field: [dat_phong.py:23-30](addons/phong_hop/models/dat_phong.py#L23-L30) (`so_nguoi_du_hop`, `suc_chua_phong` related)
-  - Ràng buộc: [dat_phong.py:125-138](addons/phong_hop/models/dat_phong.py#L125-L138) (`_constrains_suc_chua`)
-  - Giao diện: [dat_phong.xml:46-47](addons/phong_hop/views/dat_phong.xml#L46-L47), [dat_phong.xml:108](addons/phong_hop/views/dat_phong.xml#L108)
-- **Commit:** `329439ec`
+## ✅ MỨC 1 — TÍCH HỢP HỆ THỐNG (dữ liệu nhất quán)
 
-### 2. Gắn phòng họp vào Tài sản dùng chung (`is_phong_hop`) 🆕
-- **Bản gốc:** phòng họp (`quan_ly_phong_hop`) tách rời, không liên quan tới `tai_san` → sai tinh thần Đề 6 "phòng họp là tài sản dùng chung".
-- **Cải tiến:** đánh dấu tài sản là phòng họp + liên kết 2 chiều, tự đồng bộ.
-- **Code:**
-  - `tai_san`: [tai_san.py:81-82](addons/tai_san/models/tai_san.py#L81-L82) (`is_phong_hop`, `suc_chua`)
-  - Link + đồng bộ: [quan_ly_phong_hop.py:19-26](addons/phong_hop/models/quan_ly_phong_hop.py#L19) (`tai_san_id`, domain `is_phong_hop=True`), [quan_ly_phong_hop.py:71-94](addons/phong_hop/models/quan_ly_phong_hop.py#L71) (`_onchange_tai_san_id`, `_sync_tai_san_flag`, `create`/`write`)
-  - Tránh **phụ thuộc vòng**: KHÔNG đặt Many2one chiều `tai_san → quan_ly_phong_hop` (giải thích tại [tai_san.py:78-80](addons/tai_san/models/tai_san.py#L78-L80))
-- **Commit:** `ca55811f`
+**Nghiệp vụ:** Trong một doanh nghiệp, chỉ được có **MỘT** danh sách nhân viên làm gốc. Các bộ phận khác (tài sản, phòng họp) **không tự tạo lại** danh sách nhân viên mà phải **trỏ về** hồ sơ nhân sự gốc. Nhờ vậy dữ liệu không trùng lặp, không "ông nói gà bà nói vịt".
 
-### 3. Trợ lý AI đặt phòng dùng LLM thật — Groq 🆕 (Mức 3)
-- **Bản gốc:** "AI" chỉ là **regex/rule-based** (bóc tách bằng biểu thức chính quy).
-- **Cải tiến:** gọi **mô hình ngôn ngữ lớn Groq** (API tương thích OpenAI) để hiểu câu đặt phòng tiếng Việt tự nhiên; **tự fallback về regex** nếu thiếu key/lỗi mạng → không bao giờ vỡ.
-- **Code:**
-  - Cấu hình + endpoint: [phong_hop_ai_wizard.py:18-24](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L18)
-  - Đọc key: [phong_hop_ai_wizard.py:399](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L399) (`_groq_config`)
-  - Gọi LLM: [phong_hop_ai_wizard.py:405](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L405) (`_llm_extract`)
-  - Áp kết quả: [phong_hop_ai_wizard.py:454](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L454) (`_apply_llm_result`)
-  - Điểm ưu tiên LLM rồi fallback: [phong_hop_ai_wizard.py:524-532](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L524)
-- **Cấu hình:** System Parameter `phong_hop.groq_api_key`, `phong_hop.groq_model`
-- **Commit:** `24624a69` (+ fix Cloudflare `20738b03`)
+**Hệ thống của nhóm làm gì:**
+- Module **HRM (`nhan_su`)** giữ hồ sơ nhân viên gốc: thông tin cá nhân, **ảnh đại diện**, phòng ban, chức vụ, **quản lý trực tiếp**, hợp đồng, chấm công, chứng chỉ...
+- Module **Tài sản**: trường *"Người đang sử dụng"* của mỗi tài sản **trỏ thẳng** về nhân viên trong HRM — không gõ lại tên.
+- Module **Phòng họp**: trường *"Người mượn"* của mỗi đơn đặt phòng cũng **trỏ về** nhân viên HRM.
+- **Điểm tích hợp đặc biệt của Đề 6:** phòng họp vừa là **một tài sản dùng chung** (đánh dấu *"Là phòng họp"*), vừa có hồ sơ điều phối lịch riêng → 3 module **dùng chung một cơ sở dữ liệu**.
 
-### 4. Thông báo Telegram khi đặt phòng được duyệt 🆕 (Mức 3 — External API)
-- **Cải tiến:** khi bấm **Duyệt**, hệ thống gọi **Telegram Bot API** gửi thông báo; thiếu cấu hình thì bỏ qua, không chặn nghiệp vụ.
-- **Code:**
-  - Hàm gửi: [dat_phong.py:251](addons/phong_hop/models/dat_phong.py#L251) (`_send_telegram`)
-  - Soạn nội dung: [dat_phong.py:282](addons/phong_hop/models/dat_phong.py#L282) (`_telegram_message_duyet`)
-  - Kích hoạt khi duyệt: [dat_phong.py:311](addons/phong_hop/models/dat_phong.py#L311)
-- **Cấu hình:** `phong_hop.telegram_bot_token`, `phong_hop.telegram_chat_id`
-- **Commit:** `aea46b31` (+ fix giờ `be8f2cbd`)
+> **Kịch bản kể cho thầy:** "Khi công ty cấp chiếc laptop cho anh Cường, em chỉ cần chọn anh Cường từ danh sách nhân viên có sẵn — hệ thống tự biết anh ấy thuộc Phòng Kỹ thuật. Đến khi anh Cường đặt phòng họp, vẫn là **chính nhân viên đó** trong cùng một danh sách, không hề nhập trùng. Đó là tính nhất quán dữ liệu mà Mức 1 yêu cầu."
 
-### 5. Ảnh đại diện nhân viên 🆕
-- **Bản gốc:** model `nhan_vien` **không có** trường ảnh.
-- **Cải tiến:** thêm `hinh_anh` (kiểu Image) + hiển thị avatar trên form.
-- **Code:** [nhan_vien.py:17](addons/nhan_su/models/nhan_vien.py#L17), giao diện [nhan_vien.xml:11](addons/nhan_su/views/nhan_vien.xml#L11)
-- **Commit:** `b40b85c6`
+*Code: `nguoi_su_dung_id` → `nhan_vien` ([tai_san.py:76](addons/tai_san/models/tai_san.py#L76)); `nguoi_muon_id` → `nhan_vien` ([dat_phong.py:20](addons/phong_hop/models/dat_phong.py#L20)); liên kết phòng↔tài sản ([quan_ly_phong_hop.py:19](addons/phong_hop/models/quan_ly_phong_hop.py#L19)).*
 
 ---
 
-## C. SỬA LỖI / LÀM MỚI CODE GỐC K16
+## ✅ MỨC 2 — TỰ ĐỘNG HÓA QUY TRÌNH (event-driven)
 
-> Đây là phần "đọc hiểu mã nguồn cũ → vá lỗi" mà đề bài yêu cầu (Audit Code).
-> Các lỗi này khiến bản gốc **không cài/chạy được** hoặc **hiển thị sai**.
+**Nghiệp vụ:** Hệ thống phải **tự làm tiếp** các bước dựa trên sự kiện, giảm thao tác tay và sai sót. Trọng tâm Đề 6 là **giải quyết tranh chấp tài nguyên dùng chung** và **quy trình duyệt** chặt chẽ.
 
-### 6. Lỗi thứ tự load khiến cài đặt CRASH 🔧
-- **Lỗi:** `menu.xml` load trước, tham chiếu action định nghĩa ở file load sau → `ParseError: External ID not found: action_quan_ly_phong_hop`.
-- **Sửa:** đưa `menu.xml` load **cuối cùng**, gom toàn bộ menuitem về 1 file.
-- **Code:** [phong_hop/\_\_manifest\_\_.py:11-22](addons/phong_hop/__manifest__.py#L11-L22)
-- **Commit:** `392ac469`
+Hệ thống tự động hóa **5 việc**:
 
-### 7. Bug `fields.Date.max` 🔧
-- **Lỗi:** `hop_dong` dùng `fields.Date.max` (không tồn tại) → `AttributeError` khi tạo hợp đồng không có ngày kết thúc.
-- **Sửa:** [hop_dong.py:83-84](addons/nhan_su/models/hop_dong.py#L83-L84) dùng `fields.Date.to_date("9999-12-31")`
-- **Commit:** `f25914d9`
+**1) Chống trùng lịch phòng họp (lõi của Đề 6).**
+Khi có người đặt/duyệt phòng, hệ thống **tự dò** xem phòng đó đã có đơn *đã duyệt / đang dùng* nào đè lên khung giờ chưa. Nếu trùng → **chặn ngay** kèm thông báo.
+> *"Phòng đã có lịch ĐÃ DUYỆT/ĐANG SỬ DỤNG trùng khung giờ."*
 
-### 8. Thiếu 6 sequence → trùng mã "New" 🔧
-- **Lỗi:** code gọi `next_by_code(...)` cho khấu hao/bảo trì/điều chuyển/thanh lý/vị trí... nhưng sequence chưa định nghĩa → mọi bản ghi mang mã `New` → vi phạm ràng buộc duy nhất.
-- **Sửa:** bổ sung 6 sequence tại [sequence.xml:27-68](addons/tai_san/data/sequence.xml#L27-L68)
-- **Commit:** `f25914d9`
+**2) Chống trùng thiết bị.** Một chiếc máy chiếu không thể cùng lúc phục vụ 2 cuộc họp — hệ thống dò trùng cả thiết bị theo khung giờ.
 
-### 9. Lệch múi giờ +7 (lưu local thành UTC) 🔧
-- **Lỗi:** nhập 09:00 nhưng hiển thị 16:00 (Odoo lưu Datetime theo UTC, code gốc lưu thẳng giờ local).
-- **Sửa:** quy đổi local↔UTC ở ranh giới.
-  - Helper: [phong_hop_ai_wizard.py:505-521](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L505) (`_tzname`, `_local_to_utc`, `_utc_to_local_str`)
-  - Lưu đúng: [phong_hop_ai_wizard.py:499](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L499), [:558](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L558), [:685](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L685)
-  - Telegram hiển thị giờ local: [dat_phong.py:273](addons/phong_hop/models/dat_phong.py#L273) (`_fmt_local`), dùng tại [dat_phong.py:289](addons/phong_hop/models/dat_phong.py#L289)
-- **Commit:** `da3a8330`, `be8f2cbd`
+**3) Kiểm tra sức chứa.** Không cho đăng ký 15 người vào phòng chỉ chứa 10 — báo lỗi *"Phòng chỉ chứa tối đa X người"*.
 
-### 10. Groq bị Cloudflare chặn (403/1010) 🔧
-- **Lỗi:** request không có `User-Agent` bị Cloudflare chặn.
-- **Sửa:** thêm header User-Agent tại [phong_hop_ai_wizard.py:442](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L442)
-- **Commit:** `20738b03`
+**4) Tự hủy đơn trùng + ghi nhật ký khi duyệt.** Khi trưởng phòng **Duyệt** một đơn, hệ thống **tự động hủy** mọi đơn *chờ duyệt* khác bị trùng giờ (cùng phòng, hoặc cùng người mượn), và **ghi audit log** (ai thao tác, lúc nào, trạng thái trước→sau).
+
+**5) Quy trình trạng thái tự cập nhật tài nguyên.**
+`Chờ duyệt → Đã duyệt → Đang sử dụng → Đã trả`. Khi **Bắt đầu sử dụng**, thiết bị tự chuyển *Kho → Phòng*; khi **Trả phòng**, thiết bị tự về *Kho* và hệ thống cập nhật **lịch sử mượn/trả**. Bên Tài sản cũng có vòng đời tương tự: phiếu mượn, bảo trì, điều chuyển, **khấu hao** (tự trừ giá trị tài sản), **thanh lý**.
+
+> **Kịch bản kể cho thầy:** "Sáng thứ Hai, anh Cường và chị Hoa cùng xin phòng họp A1 lúc 9–11h. Trưởng phòng duyệt cho anh Cường → hệ thống **tự động hủy** đơn của chị Hoa, ghi rõ lý do 'trùng lịch', và lưu nhật ký. Không ai phải vào hủy thủ công, và luôn truy được trách nhiệm."
+
+*Code: chống trùng phòng ([dat_phong.py:111](addons/phong_hop/models/dat_phong.py#L111)); chống trùng thiết bị ([dat_phong.py:167](addons/phong_hop/models/dat_phong.py#L167)); sức chứa ([dat_phong.py:125](addons/phong_hop/models/dat_phong.py#L125)); tự hủy đơn trùng + audit khi duyệt ([dat_phong.py:295](addons/phong_hop/models/dat_phong.py#L295)); bắt đầu sử dụng + chuyển thiết bị ([dat_phong.py:361](addons/phong_hop/models/dat_phong.py#L361)).*
 
 ---
 
-## D. HẠ TẦNG & DỮ LIỆU DEMO 🆕
+## ✅ MỨC 3 — AI & KẾT NỐI BÊN NGOÀI
 
-- **Docker chạy local:** [docker-compose.run.yml](docker-compose.run.yml) — `odoo:15` + `postgres:13`, chỉ mount module custom (tránh xung đột core). Commit `3f39f4a7`.
-- **Seed dữ liệu đầy đủ cả 3 module:** [scripts/seed_demo.py](scripts/seed_demo.py) — 8 nhân viên (ảnh + quản lý trực tiếp), hợp đồng+phụ cấp, lịch sử công tác, chứng chỉ, chấm công, nghỉ phép, tăng ca, phiếu lương; tài sản + khấu hao/mượn/bảo trì/điều chuyển/thanh lý; phòng họp + thiết bị + đặt phòng. Idempotent, tự set múi giờ VN. Commit `841fb322`, `dad8ac1b`.
-- **Cài 1 lệnh:** [scripts/setup_demo.ps1](scripts/setup_demo.ps1) (PowerShell) / [scripts/setup_demo.sh](scripts/setup_demo.sh) (Git Bash). Commit `d51dc45a`, `dad8ac1b`.
-- **Hướng dẫn bàn giao:** [DEMO_SETUP.md](DEMO_SETUP.md).
+**Nghiệp vụ:** Ứng dụng công nghệ mới để hệ thống "thông minh" hơn và **liên thông với nền tảng ngoài**.
 
----
+**1) Trợ lý AI đặt phòng (AI/LLM — Groq).**
+Thay vì điền từng ô (ngày, giờ, số người, thiết bị), nhân viên chỉ cần **gõ một câu tiếng Việt tự nhiên**:
+> *"đặt phòng mai 9–11h cho 15 người có máy chiếu và 2 mic"*
 
-## E. LỊCH SỬ COMMIT (minh bạch tiến độ)
+Hệ thống gửi câu này tới **mô hình ngôn ngữ lớn Groq**, AI **bóc tách** ra dữ liệu có cấu trúc (ngày = mai, giờ = 09:00–11:00, số người = 15, thiết bị = máy chiếu×1, mic×2), rồi **tự tìm phòng trống phù hợp** và gợi ý thiết bị cần mượn từ kho.
+*(Có cơ chế dự phòng: nếu mất mạng/thiếu khóa API, hệ thống tự chuyển sang bóc tách bằng quy tắc, không bao giờ hỏng.)*
 
-```
-336b8104  feat: kế thừa module Tài sản + Phòng họp (Đề 6) từ K16   (mốc gốc)
-329439ec  feat: validate số người dự họp không vượt sức chứa
-ca55811f  feat: gắn phòng họp vào tài sản dùng chung (is_phong_hop)
-24624a69  feat: AI wizard đặt phòng dùng LLM thật (Groq)
-aea46b31  feat: thông báo Telegram khi đặt phòng được duyệt
-392ac469  fix:  sửa thứ tự load menu (crash cài đặt)
-3f39f4a7  chore: docker-compose.run.yml chạy thử local
-20738b03  fix:  thêm User-Agent tránh Cloudflare chặn Groq
-b40b85c6  feat: ảnh đại diện nhân viên + seed cơ bản
-da3a8330  fix:  xử lý timezone trong AI wizard
-f25914d9  fix:  vá bug gốc K16 (hop_dong Date.max + thiếu sequence)
-841fb322  feat: seed dữ liệu demo đầy đủ 3 module
-be8f2cbd  fix:  tin Telegram hiển thị giờ local
-d51dc45a  docs: setup_demo.sh + DEMO_SETUP.md
-cbee6f6e  chore: .gitattributes ép LF cho .sh
-dad8ac1b  feat: setup_demo.ps1 + seed tự set múi giờ VN
-```
+**2) Thông báo qua Telegram (External API).**
+Ngay khi một đơn được **Duyệt**, hệ thống **tự gọi Telegram Bot API** gửi tin báo cho người phụ trách: phòng nào, ai mượn, mấy người, khung giờ. Đây là kết nối **theo sự kiện** tới nền tảng ngoài.
+
+> **Kịch bản kể cho thầy:** "Nhân viên không cần biết form ở đâu — chỉ gõ một câu như nhắn tin, **AI hiểu và tự điền**. Khi sếp duyệt, **Telegram báo ngay** về điện thoại. Đây là phần Mức 3: tích hợp AI và kết nối dịch vụ ngoài."
+
+*Code: gọi AI Groq ([phong_hop_ai_wizard.py:405](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L405)); gửi Telegram ([dat_phong.py:251](addons/phong_hop/models/dat_phong.py#L251)).*
+
+📌 **Sơ đồ luồng nghiệp vụ end-to-end:** xem [docs/businessflow/](docs/businessflow/) — thể hiện rõ cả 3 mức trên một hình.
 
 ---
 
-## F. ĐỐI CHIẾU THANG ĐIỂM
+# II. CẢI TIẾN SO VỚI BẢN KẾ THỪA (mới / sửa)
 
-- **Mức 1 (Tích hợp hệ thống):** HRM (`nhan_vien`) là dữ liệu gốc, mọi liên kết tài sản/phòng họp trỏ về `nhan_vien`; chung 1 CSDL.
-- **Mức 2 (Tự động hóa quy trình):** chống trùng phòng/thiết bị, kiểm tra sức chứa, workflow duyệt + audit log, đồng bộ tài sản↔phòng họp tự động.
-- **Mức 3 (AI & External API):** AI Groq bóc tách yêu cầu đặt phòng (input→xử lý→output), Telegram Bot API gửi thông báo theo sự kiện duyệt.
+| # | Hạng mục | Loại | Mức | Vị trí |
+|---|----------|------|-----|--------|
+| 1 | Kiểm tra sức chứa phòng khi đặt | 🆕 Mới | 2 | [dat_phong.py:125](addons/phong_hop/models/dat_phong.py#L125) |
+| 2 | Gắn phòng họp vào Tài sản (`is_phong_hop`) | 🆕 Mới | 1 | [tai_san.py:81](addons/tai_san/models/tai_san.py#L81) |
+| 3 | Trợ lý AI dùng **LLM thật (Groq)** | 🆕 Mới | 3 | [phong_hop_ai_wizard.py:405](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L405) |
+| 4 | Thông báo **Telegram** khi duyệt | 🆕 Mới | 3 | [dat_phong.py:251](addons/phong_hop/models/dat_phong.py#L251) |
+| 5 | Ảnh đại diện nhân viên | 🆕 Mới | 1 | [nhan_vien.py:17](addons/nhan_su/models/nhan_vien.py#L17) |
+
+> **Lưu ý quan trọng khi thầy hỏi "AI cũ làm gì rồi?":** bản kế thừa K16 mới chỉ bóc tách bằng **biểu thức chính quy (regex)**, chưa phải AI thật. Nhóm đã **nâng lên gọi mô hình ngôn ngữ lớn Groq**, đồng thời thêm **kiểm tra sức chứa** (bản cũ có trường `suc_chua` nhưng bỏ trống không dùng) và **gắn phòng họp thành tài sản dùng chung** đúng tinh thần Đề 6.
+
+---
+
+# III. ĐỌC HIỂU & VÁ LỖI MÃ NGUỒN CŨ (Audit Code)
+
+> Đề bài yêu cầu "đọc hiểu mã nguồn cũ, tái cấu trúc". Nhóm đã phát hiện và sửa **5 lỗi** khiến bản gốc **không cài/chạy được hoặc hiển thị sai**:
+
+1. **Crash khi cài đặt:** `menu.xml` nạp trước các action nó tham chiếu → lỗi `ParseError`. Đã sắp lại thứ tự nạp ([phong_hop/\_\_manifest\_\_.py:22](addons/phong_hop/__manifest__.py#L22)).
+2. **Crash khi tạo hợp đồng:** code dùng `fields.Date.max` (không tồn tại). Đã sửa ([hop_dong.py:84](addons/nhan_su/models/hop_dong.py#L84)).
+3. **Trùng mã chứng từ:** thiếu 6 bộ sinh mã (sequence) cho khấu hao/bảo trì/điều chuyển/thanh lý... → mọi bản ghi mang mã "New". Đã bổ sung ([sequence.xml:27](addons/tai_san/data/sequence.xml#L27)).
+4. **Lệch múi giờ +7:** nhập 09:00 hiển thị 16:00 (Odoo lưu giờ UTC). Đã quy đổi local↔UTC ở AI wizard và thông báo Telegram.
+5. **AI bị Cloudflare chặn (403):** thiếu header `User-Agent` khi gọi Groq. Đã sửa.
+
+---
+
+# IV. HẠ TẦNG & DỮ LIỆU DEMO
+
+- **Chạy demo 1 lệnh** (máy trống): xem [DEMO_SETUP.md](DEMO_SETUP.md) — Docker dựng `odoo:15` + `postgres:13`, cài 3 module, seed dữ liệu.
+- **Dữ liệu mẫu đầy đủ** cả 3 module: 8 nhân viên (ảnh + cây quản lý), hợp đồng, chấm công, chứng chỉ, phiếu lương; tài sản + khấu hao/mượn/bảo trì/điều chuyển/thanh lý; phòng họp + thiết bị + đặt phòng ([scripts/seed_demo.py](scripts/seed_demo.py)).
+- **Lịch sử 17 commit** rõ ràng theo từng tính năng (không commit dồn cuối kỳ).
+
+---
+
+> **Tóm tắt 1 câu để chốt với thầy:** Nhóm đã biến 3 module rời rạc thành **một hệ thống ERP thống nhất** — HRM là dữ liệu gốc (Mức 1), tự động chống trùng & duyệt theo quy trình (Mức 2), và thông minh hóa bằng AI Groq + thông báo Telegram (Mức 3); đồng thời vá nhiều lỗi của bản gốc để hệ thống chạy được thật.
