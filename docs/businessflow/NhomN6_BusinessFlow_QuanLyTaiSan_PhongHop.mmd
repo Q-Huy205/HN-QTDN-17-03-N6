@@ -4,18 +4,18 @@ flowchart TD
     classDef auto fill:#fff3cd,stroke:#d39e00,color:#000;
     classDef hrm fill:#d6f5d6,stroke:#2e9e2e,color:#000;
 
-    subgraph NV["👤 Nhân viên (người đặt)"]
+    subgraph NV["Nhân viên (người đặt)"]
         A1["1. Mở Trợ lý AI - nhập yêu cầu tiếng Việt<br/>vd: 'đặt phòng mai 9-11h, 15 người, máy chiếu'"]
         A5["5. Chọn phòng gợi ý → bấm 'Tạo đăng ký'"]
         A10["10. Đến giờ → 'Bắt đầu sử dụng'"]
         A11["11. Họp xong → 'Trả phòng'"]
     end
 
-    subgraph AI["🤖 AI Groq - LLM (ngoài)"]
+    subgraph AI["AI Groq - LLM (dịch vụ ngoài)"]
         A2["2. Bóc tách: ngày / giờ / số người / thiết bị"]
     end
 
-    subgraph HT["⚙️ Hệ thống Odoo"]
+    subgraph HT["Hệ thống Odoo"]
         A3["3. Lọc phòng TRỐNG, đủ sức chứa<br/>(người mượn lấy từ hồ sơ HRM)"]
         A4["4. Gợi ý phòng phù hợp + thiết bị mượn kho"]
         A6{"6. Tự kiểm tra:<br/>trùng lịch? vượt sức chứa?"}
@@ -23,11 +23,11 @@ flowchart TD
         A12["12. Cập nhật lịch sử mượn/trả,<br/>thiết bị về kho"]
     end
 
-    subgraph TP["✅ Trưởng phòng (người duyệt)"]
+    subgraph TP["Trưởng phòng (người duyệt)"]
         A7["7. Mở 'Danh sách chờ duyệt' → bấm 'Duyệt'"]
     end
 
-    subgraph TG["📲 Telegram (ngoài)"]
+    subgraph TG["Telegram (dịch vụ ngoài)"]
         A9["9. Nhận thông báo 'Đặt phòng đã được DUYỆT'"]
     end
 

@@ -8,10 +8,10 @@
 ## Chú thích điểm tích hợp
 | Màu | Ý nghĩa | Bước |
 |-----|---------|------|
-| 🟪 Tím | **AI/LLM** (Mức 3) – Groq bóc tách yêu cầu tiếng Việt | Bước 2 |
-| 🟦 Xanh dương | **External API** (Mức 3) – gửi thông báo Telegram | Bước 9 |
-| 🟨 Vàng | **Tự động hóa** (Mức 2) – kiểm tra trùng lịch/sức chứa, tự hủy đơn trùng + audit log | Bước 6, 8 |
-| 🟩 Xanh lá | **Tích hợp HRM** – người mượn lấy từ hồ sơ `nhan_vien` | Bước 3 |
+| Tím | **AI/LLM** (Mức 3) – Groq bóc tách yêu cầu tiếng Việt | Bước 2 |
+| Xanh dương | **External API** (Mức 3) – gửi thông báo Telegram | Bước 9 |
+| Vàng | **Tự động hóa** (Mức 2) – kiểm tra trùng lịch/sức chứa, tự hủy đơn trùng + audit log | Bước 6, 8 |
+| Xanh lá | **Tích hợp HRM** – người mượn lấy từ hồ sơ `nhan_vien` | Bước 3 |
 
 ## Luồng tóm tắt (happy path, 12 bước)
 1. Nhân viên nhập yêu cầu tiếng Việt vào Trợ lý AI.
