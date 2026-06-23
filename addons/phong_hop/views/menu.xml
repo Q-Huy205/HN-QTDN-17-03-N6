@@ -29,6 +29,12 @@
               action="action_thiet_bi"
               sequence="20"/>
 
+    <menuitem id="menu_booking_service"
+              name="Dịch vụ đi kèm"
+              parent="menu_danh_muc"
+              action="action_booking_service"
+              sequence="30"/>
+
     <!-- =========================================================
          NGHIỆP VỤ: ĐĂNG KÝ
     ========================================================== -->

@@ -51,6 +51,13 @@
                                 ('trang_thai','=','san_sang'),
                                 ('trang_thai','!=','hong')]"/>
               </group>
+
+              <group>
+                <separator string="Dịch vụ đi kèm" colspan="2"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="service_ids" widget="many2many_checkboxes"/>
+                <field name="tong_tien_dich_vu" widget="monetary"/>
+              </group>
             </group>
 
             <group col="2">
@@ -107,6 +114,7 @@
           <field name="nguoi_muon_id" string="Người mượn"/>
           <field name="so_nguoi_du_hop" string="Số người"/>
           <field name="thiet_bi_ids" widget="many2many_tags" string="Thiết bị"/>
+          <field name="service_ids" widget="many2many_tags" string="Dịch vụ"/>
           <field name="thoi_gian_muon_du_kien" string="Mượn dự kiến"/>
           <field name="thoi_gian_tra_du_kien" string="Trả dự kiến"/>
           <field name="trang_thai" string="Trạng thái"

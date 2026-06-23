@@ -8,7 +8,11 @@
     "data": [
         "security/ir.model.access.csv",
 
+        # Dữ liệu danh mục dịch vụ đi kèm mặc định
+        "data/booking_service_data.xml",
+
         # Views + actions phải load TRƯỚC menu (menu tham chiếu các action này)
+        "views/booking_service.xml",
         "views/quan_ly_phong_hop.xml",
         "views/thiet_bi.xml",
         "views/dat_phong.xml",

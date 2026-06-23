@@ -35,6 +35,31 @@ class DatPhong(models.Model):
         string="Thiết bị sử dụng",
     )
 
+    # ✅ Cải tiến (Đề 6 - Giai đoạn 2): dịch vụ đi kèm (Trà, Cafe, Người phục vụ...)
+    service_ids = fields.Many2many(
+        "booking_service",
+        "dat_phong_service_rel",
+        "dat_phong_id",
+        "service_id",
+        string="Dịch vụ đi kèm",
+    )
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Tiền tệ",
+        default=lambda self: self.env.company.currency_id.id,
+    )
+    tong_tien_dich_vu = fields.Monetary(
+        string="Tổng tiền dịch vụ",
+        currency_field="currency_id",
+        compute="_compute_tong_tien_dich_vu",
+        store=True,
+    )
+
+    @api.depends("service_ids", "service_ids.gia")
+    def _compute_tong_tien_dich_vu(self):
+        for r in self:
+            r.tong_tien_dich_vu = sum(r.service_ids.mapped("gia"))
+
     thoi_gian_muon_du_kien = fields.Datetime(string="Thời gian mượn dự kiến", required=True)
     thoi_gian_muon_thuc_te = fields.Datetime(string="Thời gian mượn thực tế")
     thoi_gian_tra_du_kien = fields.Datetime(string="Thời gian trả dự kiến", required=True)
