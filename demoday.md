@@ -45,9 +45,13 @@ Hệ thống gồm ba module tích hợp: **Quản lý nhân sự** (`nhan_su`),
 4. **Tự hủy đơn trùng và ghi nhật ký khi duyệt.** Khi người duyệt chấp thuận một đơn, hệ thống tự hủy các đơn "chờ duyệt" khác bị trùng giờ (cùng phòng hoặc cùng người mượn) và ghi nhật ký thao tác (ai thực hiện, thời điểm, trạng thái trước và sau).
 5. **Quy trình trạng thái tự cập nhật tài nguyên.** Vòng đời đơn đặt phòng: chờ duyệt → đã duyệt → đang sử dụng → đã trả. Khi bắt đầu sử dụng, thiết bị tự chuyển từ kho vào phòng; khi trả phòng, thiết bị tự về kho và hệ thống cập nhật lịch sử mượn/trả. Phía Tài sản cũng có vòng đời tương tự gồm phiếu mượn, bảo trì, điều chuyển, khấu hao (tự trừ giá trị tài sản) và thanh lý.
 
-**Ví dụ minh họa.** Nhân viên Lê Hoàng Cường và nhân viên Vũ Thị Hoa cùng đăng ký phòng họp A1 lúc 9–11h. Người duyệt chấp thuận đơn của Cường; hệ thống tự động hủy đơn của Hoa, ghi rõ lý do "trùng lịch" và lưu vào nhật ký. Không cần thao tác hủy thủ công và luôn truy được trách nhiệm.
+6. **Sinh bút toán kế toán tự động khi khấu hao và thanh lý.** Tại phiếu Khấu hao hoặc phiếu Thanh lý, người dùng bấm nút "Tạo bút toán"; hệ thống tự lập một chứng từ kế toán chuẩn của Odoo (`account.move`) với hai dòng định khoản cân đối Nợ = Có. Khấu hao ghi Nợ tài khoản 6274 (Chi phí khấu hao tài sản cố định) / Có tài khoản 2141 (Hao mòn lũy kế); thanh lý ghi Nợ tài khoản 1111 (Tiền mặt) / Có tài khoản 711 (Thu nhập khác). Nếu công ty chưa cài biểu đồ tài khoản, hệ thống tự tạo sổ nhật ký và các tài khoản cần thiết, nên chức năng chạy được ngay mà không cần cấu hình kế toán trước. Mỗi phiếu chỉ tạo bút toán một lần (chống tạo trùng) và bút toán được mở bằng một biểu mẫu gọn hiển thị thẳng các dòng Nợ/Có.
 
-**Vị trí mã nguồn.** Chống trùng phòng ([dat_phong.py:111](addons/phong_hop/models/dat_phong.py#L111)); chống trùng thiết bị ([dat_phong.py:167](addons/phong_hop/models/dat_phong.py#L167)); kiểm tra sức chứa ([dat_phong.py:125](addons/phong_hop/models/dat_phong.py#L125)); tự hủy đơn trùng và ghi nhật ký khi duyệt ([dat_phong.py:295](addons/phong_hop/models/dat_phong.py#L295)); bắt đầu sử dụng và chuyển thiết bị ([dat_phong.py:361](addons/phong_hop/models/dat_phong.py#L361)).
+7. **Tính tổng chi phí dịch vụ đi kèm khi đặt phòng.** Mỗi đơn đặt phòng có thể chọn các dịch vụ đi kèm (trà, cà phê, nước suối, bánh ngọt, hoa trang trí, người phục vụ) thông qua các ô tích chọn; hệ thống tự cộng đơn giá của các dịch vụ đã chọn thành "Tổng tiền dịch vụ" của đơn, cập nhật ngay khi thay đổi lựa chọn.
+
+**Ví dụ minh họa.** Nhân viên Lê Hoàng Cường và nhân viên Vũ Thị Hoa cùng đăng ký phòng họp A1 lúc 9–11h. Người duyệt chấp thuận đơn của Cường; hệ thống tự động hủy đơn của Hoa, ghi rõ lý do "trùng lịch" và lưu vào nhật ký. Không cần thao tác hủy thủ công và luôn truy được trách nhiệm. Tương tự, khi kế toán bấm "Tạo bút toán" trên một phiếu khấu hao trị giá 2.000.000đ, hệ thống lập ngay chứng từ Nợ 6274 / Có 2141 đúng 2.000.000đ, sẵn sàng ghi sổ.
+
+**Vị trí mã nguồn.** Chống trùng phòng ([dat_phong.py:111](addons/phong_hop/models/dat_phong.py#L111)); chống trùng thiết bị ([dat_phong.py:167](addons/phong_hop/models/dat_phong.py#L167)); kiểm tra sức chứa ([dat_phong.py:125](addons/phong_hop/models/dat_phong.py#L125)); tự hủy đơn trùng và ghi nhật ký khi duyệt ([dat_phong.py:295](addons/phong_hop/models/dat_phong.py#L295)); bắt đầu sử dụng và chuyển thiết bị ([dat_phong.py:361](addons/phong_hop/models/dat_phong.py#L361)); sinh bút toán khấu hao ([khau_hao.py:63](addons/tai_san/models/khau_hao.py#L63)) và thanh lý ([thanh_ly.py:154](addons/tai_san/models/thanh_ly.py#L154)), hàm lập bút toán cân đối dùng chung ([but_toan_mixin.py:60](addons/tai_san/models/but_toan_mixin.py#L60)); dịch vụ đi kèm và tổng tiền dịch vụ ([dat_phong.py:39](addons/phong_hop/models/dat_phong.py#L39), [booking_service.py:13](addons/phong_hop/models/booking_service.py#L13)).
 
 ---
 
@@ -78,8 +82,11 @@ Hệ thống gồm ba module tích hợp: **Quản lý nhân sự** (`nhan_su`),
 | Trợ lý AI dùng mô hình ngôn ngữ lớn thật (Groq) | Mới | 3 | [phong_hop_ai_wizard.py:405](addons/phong_hop/wizards/phong_hop_ai_wizard.py#L405) |
 | Thông báo Telegram khi duyệt | Mới | 3 | [dat_phong.py:251](addons/phong_hop/models/dat_phong.py#L251) |
 | Ảnh đại diện nhân viên | Mới | 1 | [nhan_vien.py:17](addons/nhan_su/models/nhan_vien.py#L17) |
+| Sinh bút toán kế toán (`account.move`) khi khấu hao | Mới | 2 | [khau_hao.py:63](addons/tai_san/models/khau_hao.py#L63) |
+| Sinh bút toán kế toán (`account.move`) khi thanh lý | Mới | 2 | [thanh_ly.py:154](addons/tai_san/models/thanh_ly.py#L154) |
+| Dịch vụ đi kèm phòng họp và tự tính tổng tiền | Mới | 2 | [dat_phong.py:39](addons/phong_hop/models/dat_phong.py#L39), [booking_service.py:13](addons/phong_hop/models/booking_service.py#L13) |
 
-Điểm cần nhấn mạnh: bản kế thừa K16 mới chỉ bóc tách yêu cầu bằng biểu thức chính quy (regex), chưa phải AI thật. Nhóm đã nâng lên gọi mô hình ngôn ngữ lớn Groq, đồng thời bổ sung kiểm tra sức chứa (bản cũ có trường sức chứa nhưng bỏ trống không dùng) và gắn phòng họp thành tài sản dùng chung đúng tinh thần Đề 6.
+Điểm cần nhấn mạnh: bản kế thừa K16 mới chỉ bóc tách yêu cầu bằng biểu thức chính quy (regex), chưa phải AI thật. Nhóm đã nâng lên gọi mô hình ngôn ngữ lớn Groq, đồng thời bổ sung kiểm tra sức chứa (bản cũ có trường sức chứa nhưng bỏ trống không dùng) và gắn phòng họp thành tài sản dùng chung đúng tinh thần Đề 6. Ngoài ra, nhóm bổ sung hai nghiệp vụ bám sát yêu cầu Đề 6 mà bản gốc còn thiếu: sinh bút toán kế toán `account.move` cho khấu hao và thanh lý (yêu cầu phần Tài sản), và dịch vụ đi kèm khi đặt phòng (yêu cầu phần Phòng họp giai đoạn nâng cao).
 
 ---
 
