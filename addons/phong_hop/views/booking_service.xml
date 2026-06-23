@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <record id="view_booking_service_tree" model="ir.ui.view">
+      <field name="name">booking_service.tree</field>
+      <field name="model">booking_service</field>
+      <field name="arch" type="xml">
+        <tree string="Dịch vụ đi kèm" editable="bottom">
+          <field name="sequence" widget="handle"/>
+          <field name="name"/>
+          <field name="mo_ta"/>
+          <field name="currency_id" invisible="1"/>
+          <field name="gia" widget="monetary"/>
+          <field name="active"/>
+        </tree>
+      </field>
+    </record>
+
+    <record id="view_booking_service_form" model="ir.ui.view">
+      <field name="name">booking_service.form</field>
+      <field name="model">booking_service</field>
+      <field name="arch" type="xml">
+        <form string="Dịch vụ đi kèm">
+          <sheet>
+            <group>
+              <group>
+                <field name="name"/>
+                <field name="mo_ta"/>
+              </group>
+              <group>
+                <field name="currency_id" invisible="1"/>
+                <field name="gia" widget="monetary"/>
+                <field name="sequence"/>
+                <field name="active"/>
+              </group>
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_booking_service" model="ir.actions.act_window">
+      <field name="name">Dịch vụ đi kèm</field>
+      <field name="res_model">booking_service</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+  </data>
+</odoo>
