@@ -7,6 +7,7 @@
     "depends": [
         "base",
         "mail",
+        "account",  # ✅ Cải tiến: tạo bút toán kế toán (account.move) cho khấu hao & thanh lý
         "nhan_su",
         # "phong_hop",  # BỎ để tránh circular dependency
     ],
@@ -25,6 +26,7 @@
         "views/lich_su_bao_tri.xml",
         "views/lich_su_dieu_chuyen.xml",
         "views/khau_hao.xml",
+        "views/but_toan.xml",
         "views/tai_san_statistics.xml",
         "views/menu.xml",
     ],

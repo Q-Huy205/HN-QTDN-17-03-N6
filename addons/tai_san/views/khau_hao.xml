@@ -7,6 +7,14 @@
       <field name="model">khau_hao</field>
       <field name="arch" type="xml">
         <form string="Thông tin khấu hao">
+          <header>
+            <button name="action_tao_but_toan" type="object" string="Tạo bút toán"
+                    class="btn-primary"
+                    attrs="{'invisible': ['|', ('id','=',False), ('move_id','!=',False)]}"/>
+            <button name="action_xem_but_toan" type="object" string="Xem bút toán"
+                    class="btn-secondary"
+                    attrs="{'invisible': [('move_id','=',False)]}"/>
+          </header>
           <sheet>
             <group col="2">
               <group string="Thông tin cơ bản">
@@ -22,6 +30,7 @@
 
             <group string="Tài sản liên quan">
               <field name="tai_san_id" required="1"/>
+              <field name="move_id" readonly="1" attrs="{'invisible': [('move_id','=',False)]}"/>
             </group>
 
             <group string="Ghi chú">
@@ -60,7 +69,7 @@
           <field name="tai_san_id"/>
           <templates>
             <t t-name="kanban-box">
-              <div class="oe_kanban_card">
+              <div class="oe_kanban_card oe_kanban_global_click">
                 <div class="o_kanban_content">
                   <strong><field name="ma_khau_hao"/></strong>
                   <div>Ngày khấu hao: <field name="ngay_khau_hao"/></div>

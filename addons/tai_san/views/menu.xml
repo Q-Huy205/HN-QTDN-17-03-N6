@@ -90,6 +90,12 @@
               sequence="80"
               action="tai_san.action_khau_hao"/>
 
+    <menuitem id="menu_but_toan_tai_san"
+              name="Bút toán tài sản"
+              parent="menu_quan_ly_phieu_lich_su"
+              sequence="90"
+              action="tai_san.action_but_toan_tai_san"/>
+
     <!-- THỐNG KÊ -->
     <menuitem id="menu_tai_san_statistics"
               name="Thống kê"

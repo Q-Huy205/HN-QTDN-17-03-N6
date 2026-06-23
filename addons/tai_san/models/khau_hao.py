@@ -6,7 +6,7 @@ from odoo.exceptions import ValidationError
 class KhauHao(models.Model):
     _name = "khau_hao"
     _description = "Bảng chứa thông tin khấu hao"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "tai_san.but_toan_mixin"]
     _order = "ma_khau_hao"
 
     _sql_constraints = [
@@ -47,6 +47,48 @@ class KhauHao(models.Model):
         ondelete="restrict",
         tracking=True,
     )
+
+    # ✅ Bút toán kế toán sinh ra khi khấu hao (Nợ chi phí khấu hao / Có hao mòn lũy kế)
+    move_id = fields.Many2one(
+        "account.move",
+        string="Bút toán kế toán",
+        readonly=True,
+        copy=False,
+        tracking=True,
+    )
+
+    # -----------------------------
+    # BÚT TOÁN KẾ TOÁN (account.move)
+    # -----------------------------
+    def action_tao_but_toan(self):
+        """Tạo bút toán khấu hao: Nợ 6274 (Chi phí khấu hao) / Có 2141 (Hao mòn lũy kế)."""
+        self.ensure_one()
+        if self.move_id:
+            raise ValidationError("Bút toán cho lần khấu hao này đã được tạo!")
+        tk_no = self._bt_get_account(
+            "6274", "Chi phí khấu hao TSCĐ", "account.data_account_type_expenses"
+        )
+        tk_co = self._bt_get_account(
+            "2141", "Hao mòn lũy kế TSCĐ", "account.data_account_type_depreciation"
+        )
+        dien_giai = "Khấu hao tài sản: %s" % (self.tai_san_id.ten_tai_san or "")
+        move = self._bt_tao_but_toan(
+            ref=self.ma_khau_hao,
+            ngay=self.ngay_khau_hao,
+            so_tien=self.gia_tri_khau_hao,
+            tk_no=tk_no,
+            tk_co=tk_co,
+            dien_giai=dien_giai,
+        )
+        self.move_id = move.id
+        self.message_post(body="Đã tạo bút toán khấu hao %s." % move.name)
+        return self._bt_action_xem(move)
+
+    def action_xem_but_toan(self):
+        self.ensure_one()
+        if not self.move_id:
+            raise ValidationError("Chưa có bút toán cho lần khấu hao này!")
+        return self._bt_action_xem(self.move_id)
 
     # -----------------------------
     # Helpers

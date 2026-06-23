@@ -6,7 +6,7 @@ from odoo.exceptions import ValidationError
 class ThanhLy(models.Model):
     _name = "thanh_ly"
     _description = "Thanh lý tài sản"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "tai_san.but_toan_mixin"]
     _order = "ma_thanh_ly desc"
 
     _sql_constraints = [
@@ -54,6 +54,15 @@ class ThanhLy(models.Model):
 
     ly_do = fields.Text(string="Lý do thanh lý")
     nguoi_xu_ly_id = fields.Many2one("nhan_vien", string="Người xử lý", required=True, tracking=True)
+
+    # ✅ Bút toán kế toán ghi nhận thu từ thanh lý (Nợ tiền / Có thu nhập khác)
+    move_id = fields.Many2one(
+        "account.move",
+        string="Bút toán kế toán",
+        readonly=True,
+        copy=False,
+        tracking=True,
+    )
 
     # =========================================================
     # CREATE: SEQUENCE + default currency theo tài sản (nếu có)
@@ -138,3 +147,38 @@ class ThanhLy(models.Model):
         self.tai_san_id.write(vals)
 
         self.write({"trang_thai": "cancelled"})
+
+    # =========================================================
+    # BÚT TOÁN KẾ TOÁN (account.move)
+    # =========================================================
+    def action_tao_but_toan(self):
+        """Tạo bút toán thu thanh lý: Nợ 111 (Tiền) / Có 711 (Thu nhập khác)."""
+        self.ensure_one()
+        if self.trang_thai not in ("confirmed", "done"):
+            raise ValidationError(_("Chỉ tạo bút toán khi phiếu đã xác nhận hoặc hoàn thành!"))
+        if self.move_id:
+            raise ValidationError(_("Phiếu thanh lý này đã có bút toán!"))
+        tk_no = self._bt_get_account(
+            "1111", "Tiền mặt", "account.data_account_type_current_assets"
+        )
+        tk_co = self._bt_get_account(
+            "711", "Thu nhập khác (thanh lý TSCĐ)", "account.data_account_type_other_income"
+        )
+        dien_giai = _("Thu thanh lý tài sản: %s") % (self.tai_san_id.ten_tai_san or "")
+        move = self._bt_tao_but_toan(
+            ref=self.ma_thanh_ly,
+            ngay=self.ngay_thanh_ly,
+            so_tien=self.gia_tri_thanh_ly,
+            tk_no=tk_no,
+            tk_co=tk_co,
+            dien_giai=dien_giai,
+        )
+        self.move_id = move.id
+        self.message_post(body=_("Đã tạo bút toán thanh lý %s.") % move.name)
+        return self._bt_action_xem(move)
+
+    def action_xem_but_toan(self):
+        self.ensure_one()
+        if not self.move_id:
+            raise ValidationError(_("Phiếu này chưa có bút toán!"))
+        return self._bt_action_xem(self.move_id)
