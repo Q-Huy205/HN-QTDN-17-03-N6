@@ -1,0 +1,38 @@
+flowchart LR
+  classDef hrm fill:#E3F2FD,stroke:#1565C0,color:#0D47A1
+  classDef ts  fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20
+  classDef ph  fill:#FFF3E0,stroke:#EF6C00,color:#E65100
+  classDef ext fill:#F3E5F5,stroke:#6A1B9A,color:#4A148C
+  classDef db  fill:#ECEFF1,stroke:#455A64,color:#263238
+
+  subgraph HRM["Module Nhân sự (nhan_su)"]
+    NV["nhan_vien<br/>hồ sơ nhân viên gốc"]:::hrm
+  end
+
+  subgraph TS["Module Tài sản (tai_san)"]
+    TAI["tai_san<br/>is_phong_hop · sức chứa"]:::ts
+    KH["Khấu hao · Thanh lý"]:::ts
+    BT["Bút toán account.move<br/>(Nợ / Có)"]:::ts
+  end
+
+  subgraph PH["Module Phòng họp (phong_hop)"]
+    DP["dat_phong<br/>đặt phòng"]:::ph
+    DV["booking_service<br/>dịch vụ đi kèm"]:::ph
+    TB["thiet_bi"]:::ph
+  end
+
+  GROQ["Groq AI (LLM)<br/>trợ lý đặt phòng"]:::ext
+  TELE["Telegram Bot API<br/>thông báo khi duyệt"]:::ext
+  DB[("PostgreSQL<br/>CSDL dùng chung")]:::db
+
+  NV -->|người sử dụng| TAI
+  NV -->|người mượn| DP
+  TAI -->|là phòng họp| DP
+  DV --> DP
+  TB --> DP
+  TAI --> KH --> BT
+  GROQ -.->|tự tạo đơn| DP
+  DP -.->|khi duyệt| TELE
+  HRM --- DB
+  TS --- DB
+  PH --- DB
